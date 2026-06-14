@@ -270,6 +270,24 @@ Pick the verification that matches the task's surface — do not skip:
 - A task that touches both layers gets both: contract test for the API + a Playwright spec
   for the UI flow.
 
+### Branch & Deploy Strategy
+
+```
+main      → the ONLY deployable branch (Vercel production). Protected: merge via PR only.
+staging   → long-lived local-integration branch. Feature branches merge here first for
+            local end-to-end testing. NEVER auto-deployed (disabled in vercel.json →
+            git.deploymentEnabled.staging = false).
+feature/* → per-task branches (see Per-Task Git Workflow). PR into staging for testing,
+            then staging → main once validated.
+```
+
+- `vercel.json` disables Vercel deployment for `staging`. Vercel treats `main` as the
+  production branch by default. To block preview deployments on `feature/*` branches too,
+  that must be toggled in the Vercel dashboard (Settings → Git) — it cannot be fully
+  expressed in `vercel.json` (no wildcard for branch names).
+- Run the app locally from `staging` for testing (`uv run uvicorn app.main:app --reload`
+  + `cd frontend && npm run dev`); only promote to `main` what is meant to ship.
+
 ### Legacy Spec Files (original, kept for reference)
 - `docs/DATABASE.md` — original DDL reference
 - `docs/API.md` — original API spec
