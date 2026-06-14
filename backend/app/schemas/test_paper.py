@@ -42,3 +42,9 @@ class TestPaperQuestionAdd(BaseModel):
     marks: Decimal = Decimal("4")
     negative_marks: Decimal = Decimal("1")
     subject_section: str | None = None
+
+
+class TestPaperQuestionsIn(BaseModel):
+    """Request body wrapper for bulk-adding questions to a test paper."""
+
+    question_ids: list[TestPaperQuestionAdd] = Field(min_length=1)

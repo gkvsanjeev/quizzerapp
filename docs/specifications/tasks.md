@@ -237,14 +237,16 @@ Security notes:
     404 nonexistent paper)
   - RED confirmed: 10 fail (routes 404), 3 pass (the nonexistent→404 cases). Green after T025.
 
-- [ ] **T025** 🔴 Test paper API routes
-  - Path: `backend/app/api/routes/exams.py` (extend) or `test_papers.py`
-  - Routes: GET /api/exams/{id}/test-papers, POST /api/exams/{id}/test-papers
-  - Route: POST /api/test-papers/{id}/questions (bulk add questions with marks)
+- [x] **T025** 🔴 Test paper API routes
+  - Path: `backend/app/api/routes/exams.py` (nested) + `test_papers.py` + `services/test_paper_service.py`
+  - Routes: GET /api/exams/{id}/test-papers, POST /api/exams/{id}/test-papers (in exams.py,
+    alongside subjects), POST /api/test-papers/{id}/questions (own router; bulk add with marks)
+  - Body wrapper `TestPaperQuestionsIn { question_ids: [TestPaperQuestionAdd] }`; created_at
+    populated via refresh (server_default). GREEN: 13 T024 tests pass; full suite 71 passed.
 
-- [ ] **T026** 🔴 Register all Phase 2 routers in main.py
+- [x] **T026** 🔴 Register all Phase 2 routers in main.py
   - Path: `backend/app/main.py`
-  - Add: `app.include_router(exams_router)`, `app.include_router(questions_router)`
+  - Done across T023/T025: `exams`, `questions`, and `test_papers` routers all registered.
 
 ### Teacher UI (Days 15–17)
 
@@ -500,15 +502,15 @@ Security notes:
 | Phase 0: Scaffold | 5 | 5 ✅ | 0 |
 | Phase 1: Auth + DB | 10 | 10 ✅ | 0 |
 | Phase 1b: Password Reset | 4 | 4 ✅ | 0 |
-| Phase 2: Exam Mgmt | 14 | 9 | 5 |
+| Phase 2: Exam Mgmt | 14 | 11 | 3 |
 | Phase 3: Exam Taking | 11 | 0 | 11 |
 | Phase 4: Analysis | 13 | 0 | 13 |
 | Phase 5: RAG/AI | 7 | 0 | 7 |
 | Phase 6: Polish | 7 | 0 | 7 |
 | **Total** | **71** | **25** | **46** |
 
-**Current**: 28/71 tasks complete (39%)  
-**Next task**: T025 — Test paper API routes (makes T024 tests green)
+**Current**: 30/71 tasks complete (42%)  
+**Next task**: T027 — Exam management page (teacher) — first Phase 2 frontend task
 
 ---
 
