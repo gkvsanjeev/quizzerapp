@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.exam import Exam, Subject
-from app.schemas.exam import ExamCreate, ExamUpdate
+from app.schemas.exam import ExamCreate, ExamUpdate, SubjectCreate
 
 
 def _with_subjects():
@@ -68,3 +68,30 @@ async def update_exam(db: AsyncSession, exam_id: UUID, data: ExamUpdate) -> Exam
 
     await db.commit()
     return await get_exam(db, exam_id)
+
+
+async def exam_exists(db: AsyncSession, exam_id: UUID) -> bool:
+    result = await db.execute(select(Exam.id).where(Exam.id == exam_id))
+    return result.scalar_one_or_none() is not None
+
+
+async def list_subjects(db: AsyncSession, exam_id: UUID) -> list[Subject]:
+    stmt = (
+        select(Subject)
+        .where(Subject.exam_id == exam_id)
+        .options(selectinload(Subject.topics))
+        .order_by(Subject.order_index)
+    )
+    rows = (await db.execute(stmt)).scalars().all()
+    return list(rows)
+
+
+async def create_subject(db: AsyncSession, exam_id: UUID, data: SubjectCreate) -> Subject:
+    subject = Subject(exam_id=exam_id, name=data.name, order_index=data.order_index)
+    db.add(subject)
+    await db.commit()
+    # Re-fetch with topics eager-loaded (topics use lazy="raise").
+    result = await db.execute(
+        select(Subject).where(Subject.id == subject.id).options(selectinload(Subject.topics))
+    )
+    return result.scalar_one()

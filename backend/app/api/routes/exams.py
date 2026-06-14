@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db, require_role
 from app.models.user import User
-from app.schemas.exam import ExamCreate, ExamOut, ExamUpdate
+from app.schemas.exam import ExamCreate, ExamOut, ExamUpdate, SubjectCreate, SubjectOut
 from app.services import exam_service
 
 router = APIRouter()
@@ -64,3 +64,30 @@ async def update_exam(
     if exam is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exam not found")
     return ExamOut.model_validate(exam)
+
+
+@router.get("/{exam_id}/subjects", response_model=list[SubjectOut])
+async def list_subjects(
+    exam_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    if not await exam_service.exam_exists(db, exam_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exam not found")
+    subjects = await exam_service.list_subjects(db, exam_id)
+    return [SubjectOut.model_validate(s) for s in subjects]
+
+
+@router.post(
+    "/{exam_id}/subjects", response_model=SubjectOut, status_code=status.HTTP_201_CREATED
+)
+async def create_subject(
+    exam_id: UUID,
+    data: SubjectCreate,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_role("teacher", "admin")),
+):
+    if not await exam_service.exam_exists(db, exam_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exam not found")
+    subject = await exam_service.create_subject(db, exam_id, data)
+    return SubjectOut.model_validate(subject)

@@ -204,7 +204,7 @@ Security notes:
   - Pagination: `?page=1&limit=20&exam_type=JEE&published=true`
   - Auth: all require auth; POST/PUT require teacher or admin role
 
-- [ ] **T021** 🔴 Subject and Topic API routes
+- [x] **T021** 🔴 Subject and Topic API routes
   - Extend: `backend/app/api/routes/exams.py`
   - Routes: GET /api/exams/{id}/subjects, POST /api/exams/{id}/subjects
   - Response: `SubjectOut[]` with nested `topics: TopicOut[]`
@@ -490,15 +490,15 @@ Security notes:
 | Phase 0: Scaffold | 5 | 5 ✅ | 0 |
 | Phase 1: Auth + DB | 10 | 10 ✅ | 0 |
 | Phase 1b: Password Reset | 4 | 4 ✅ | 0 |
-| Phase 2: Exam Mgmt | 14 | 5 | 9 |
+| Phase 2: Exam Mgmt | 14 | 6 | 8 |
 | Phase 3: Exam Taking | 11 | 0 | 11 |
 | Phase 4: Analysis | 13 | 0 | 13 |
 | Phase 5: RAG/AI | 7 | 0 | 7 |
 | Phase 6: Polish | 7 | 0 | 7 |
-| **Total** | **71** | **24** | **47** |
+| **Total** | **71** | **25** | **46** |
 
-**Current**: 24/71 tasks complete (34%)  
-**Next task**: T021 — Subject and Topic API routes
+**Current**: 25/71 tasks complete (35%)  
+**Next task**: T022 — Contract tests for question routes
 
 ---
 
