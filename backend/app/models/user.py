@@ -33,6 +33,11 @@ class User(Base, UUIDMixin, TimestampMixin):
         cascade="all, delete-orphan",
         lazy="raise",
     )
+    password_reset_tokens: Mapped[list["PasswordResetToken"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="raise",
+    )
 
 
 class RefreshToken(Base, UUIDMixin):
@@ -54,3 +59,24 @@ class RefreshToken(Base, UUIDMixin):
     )
 
     user: Mapped["User"] = relationship(back_populates="refresh_tokens", lazy="raise")
+
+
+class PasswordResetToken(Base, UUIDMixin):
+    __tablename__ = "password_reset_tokens"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    token_hash: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default="now()",
+        nullable=False,
+    )
+
+    user: Mapped["User"] = relationship(back_populates="password_reset_tokens", lazy="raise")

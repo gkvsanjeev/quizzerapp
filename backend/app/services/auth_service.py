@@ -5,11 +5,11 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt as _bcrypt
 from jose import jwt
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.models.user import RefreshToken, User, UserRole
+from app.models.user import PasswordResetToken, RefreshToken, User, UserRole
 from app.schemas.auth import RegisterIn
 
 
@@ -118,6 +118,67 @@ async def rotate_refresh_token(db: AsyncSession, raw_token: str) -> tuple[User, 
     await db.commit()
 
     return user, create_access_token(str(user.id), user.role.value), raw_new
+
+
+def _new_password_reset_token() -> tuple[str, str]:
+    """Return (raw_token, sha256_hash). Store the hash; email the raw token."""
+    raw = secrets.token_urlsafe(48)
+    hashed = hashlib.sha256(raw.encode()).hexdigest()
+    return raw, hashed
+
+
+async def create_password_reset(db: AsyncSession, email: str) -> tuple[User, str] | None:
+    """Issue a single-use password-reset token for an active user.
+
+    Returns (user, raw_token) or None if no active user matches the email.
+    Callers must NOT leak the None case to clients (avoid user enumeration).
+    """
+    result = await db.execute(
+        select(User).where(User.email == email, User.is_active.is_(True))
+    )
+    user = result.scalar_one_or_none()
+    if not user:
+        return None
+
+    raw, hashed = _new_password_reset_token()
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.PASSWORD_RESET_EXPIRE_MINUTES
+    )
+    db.add(PasswordResetToken(user_id=user.id, token_hash=hashed, expires_at=expires_at))
+    await db.commit()
+    return user, raw
+
+
+async def reset_password(db: AsyncSession, raw_token: str, new_password: str) -> User:
+    """Validate a reset token, set the new password, and revoke all refresh tokens."""
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    now = datetime.now(timezone.utc)
+
+    result = await db.execute(
+        select(PasswordResetToken).where(
+            PasswordResetToken.token_hash == token_hash,
+            PasswordResetToken.used_at.is_(None),
+            PasswordResetToken.expires_at > now,
+        )
+    )
+    record = result.scalar_one_or_none()
+    if not record:
+        raise ValueError("Invalid or expired reset token")
+
+    user = await db.get(User, record.user_id)
+    if not user or not user.is_active:
+        raise ValueError("User not found or inactive")
+
+    record.used_at = now
+    user.hashed_password = hash_password(new_password)
+    # Force re-login everywhere: revoke all of the user's active refresh tokens.
+    await db.execute(
+        update(RefreshToken)
+        .where(RefreshToken.user_id == user.id, RefreshToken.revoked_at.is_(None))
+        .values(revoked_at=now)
+    )
+    await db.commit()
+    return user
 
 
 async def revoke_refresh_token(db: AsyncSession, raw_token: str) -> None:
