@@ -142,9 +142,22 @@ Called every 10s for autosave and on every option click.
 ```
 
 ### GET /api/attempts
-**Requires**: Auth
-**Query**: `?user_id=&test_paper_id=`
+**Requires**: Auth (returns the caller's own attempts)
+**Query**: `?test_paper_id=`
 **Response 200**: `AttemptSummaryOut[]`
+```json
+[{
+  "id": "uuid",
+  "test_paper_id": "uuid",
+  "test_paper_title": "Mechanics Mock Test",
+  "status": "submitted",
+  "started_at": "iso8601",
+  "submitted_at": "iso8601 | null",
+  "final_score": 4,
+  "rank": 1,
+  "percentile": 50.0
+}]
+```
 
 ---
 
