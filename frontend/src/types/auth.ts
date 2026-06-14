@@ -26,3 +26,16 @@ export interface LoginPayload {
   email: string
   password: string
 }
+
+export interface ForgotPasswordPayload {
+  email: string
+}
+
+export interface ResetPasswordPayload {
+  token: string
+  new_password: string
+}
+
+export interface MessageOut {
+  message: string
+}

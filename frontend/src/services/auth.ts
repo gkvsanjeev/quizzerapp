@@ -1,5 +1,13 @@
 import { api } from './api'
-import type { LoginPayload, RegisterPayload, TokenOut, User } from '@/types/auth'
+import type {
+  ForgotPasswordPayload,
+  LoginPayload,
+  MessageOut,
+  RegisterPayload,
+  ResetPasswordPayload,
+  TokenOut,
+  User,
+} from '@/types/auth'
 
 export const authApi = {
   register: (data: RegisterPayload) =>
@@ -11,4 +19,10 @@ export const authApi = {
   logout: () => api.post('/api/auth/logout'),
 
   me: () => api.get<User>('/api/auth/me').then((r) => r.data),
+
+  forgotPassword: (data: ForgotPasswordPayload) =>
+    api.post<MessageOut>('/api/auth/forgot-password', data).then((r) => r.data),
+
+  resetPassword: (data: ResetPasswordPayload) =>
+    api.post<MessageOut>('/api/auth/reset-password', data).then((r) => r.data),
 }
