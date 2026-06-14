@@ -280,30 +280,35 @@ Security notes:
 
 ### Attempt API (Days 18–20)
 
-- [ ] **T030** 🟡 Pydantic v2 schemas for attempt domain
+- [x] **T030** 🟡 Pydantic v2 schemas for attempt domain
   - Path: `backend/app/schemas/attempt.py`
-  - Schemas: `AttemptCreate`, `AttemptStateOut`, `AnswerUpdate`, `AttemptResultOut`, `AttemptSummaryOut`
-  - Critical: `AttemptStateOut` must NOT include `is_correct` in options (prevent cheating)
+  - Schemas: `AttemptCreate`, `AttemptStateOut` (+ `QuestionStudentOut`/`OptionStudentOut`/
+    `TestPaperBrief`/`AnswerStateOut`), `AnswerUpdate`, `AttemptResultOut`, `AttemptSummaryOut`
+  - `OptionStudentOut` omits `is_correct` (answer key never sent to clients).
 
-- [ ] **T031** 🟡 Contract tests for attempt routes
-  - Path: `backend/tests/contract/test_attempt_api.py`
-  - Tests: POST /api/attempts (start), GET /api/attempts/{id} (resume), PUT /api/attempts/{id}/answer (auto-save), POST /api/attempts/{id}/submit
+- [x] **T031** 🟡 Contract tests for attempt routes
+  - Path: `backend/tests/contract/test_attempt_api.py` (14 tests)
+  - start (201/401/403 teacher/403 unpublished/409 duplicate), resume (200/403/404), answer
+    (200 + persists/403), submit (correct scoring, negative marking, 400 re-submit), list.
+  - RED→GREEN with T032–T034.
 
-- [ ] **T032** 🟡 Attempt start and resume API
-  - Path: `backend/app/api/routes/attempts.py`
-  - POST /api/attempts: creates attempt record, returns full AttemptStateOut
-  - GET /api/attempts/{id}: returns existing attempt with saved answers + elapsed time
-  - Validates: student role, paper is published, no existing attempt (UNIQUE constraint)
+- [x] **T032** 🟡 Attempt start and resume API
+  - Path: `backend/app/api/routes/attempts.py` + `services/attempt_service.py`
+  - POST /api/attempts → AttemptStateOut (student only; 403 if parent exam unpublished;
+    409 if already attempted). GET /api/attempts/{id} → resume with saved answers + elapsed.
+  - Added `UniqueConstraint(user_id, test_paper_id)` to the Attempt model (matches migration 001).
 
-- [ ] **T033** 🟡 Answer auto-save API
-  - Route: PUT /api/attempts/{id}/answer
-  - Updates `attempt_answers` row: selected_option_id, time_spent_seconds (+= delta), is_marked_for_review, visit_count, last_visited_at
-  - Returns: `{ saved: true }`
+- [x] **T033** 🟡 Answer auto-save API
+  - Route: PUT /api/attempts/{id}/answer (owner only; 400 if not in_progress)
+  - Upserts the `attempt_answers` row: selected_option_id, time_spent_seconds += delta,
+    is_marked_for_review, visit_count, change_count, last_visited_at. Returns `{ saved: true }`.
 
-- [ ] **T034** 🟡 Attempt submit API
-  - Route: POST /api/attempts/{id}/submit
-  - Computes: raw_score (sum marks for correct), final_score (raw - negative_marks for incorrect)
-  - Computes: `attempt_subject_stats` rows for all subjects
+- [x] **T034** 🟡 Attempt submit API
+  - Route: POST /api/attempts/{id}/submit (owner; 400 if already submitted)
+  - raw_score = Σ marks(correct); final_score = raw − Σ negative_marks(incorrect); writes
+    `attempt_subject_stats` per subject; sets status/submitted_at; computes rank + percentile
+    among submitted attempts. (Subject-stat computation lives in attempt_service for now;
+    analysis_service refactor is T043.) GREEN: 14 tests; full suite 85 passed.
   - Updates: attempt.status = "submitted", attempt.submitted_at = now()
   - Returns: `AttemptResultOut` with rank + percentile
 
@@ -509,14 +514,14 @@ Security notes:
 | Phase 1: Auth + DB | 10 | 10 ✅ | 0 |
 | Phase 1b: Password Reset | 4 | 4 ✅ | 0 |
 | Phase 2: Exam Mgmt | 14 | 14 ✅ | 0 |
-| Phase 3: Exam Taking | 11 | 0 | 11 |
+| Phase 3: Exam Taking | 11 | 5 | 6 |
 | Phase 4: Analysis | 13 | 0 | 13 |
 | Phase 5: RAG/AI | 7 | 0 | 7 |
 | Phase 6: Polish | 7 | 0 | 7 |
 | **Total** | **71** | **25** | **46** |
 
-**Current**: 33/71 tasks complete (46%) — Phase 2 complete  
-**Next task**: T030 — Pydantic v2 schemas for attempt domain (Phase 3 start)
+**Current**: 38/71 tasks complete (54%) — Phase 3 attempt API complete  
+**Next task**: T035 — Zustand examSessionStore (Phase 3 frontend; T035–T040 exam UI)
 
 ---
 

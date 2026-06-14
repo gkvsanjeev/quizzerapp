@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, Integer, Numeric
+from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, Integer, Numeric, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,6 +19,8 @@ class AttemptStatus(str, enum.Enum):
 
 class Attempt(Base, UUIDMixin):
     __tablename__ = "attempts"
+    # One attempt per user per paper (per docs/specifications/database-design.md).
+    __table_args__ = (UniqueConstraint("user_id", "test_paper_id", name="uq_attempt_user_paper"),)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True),
