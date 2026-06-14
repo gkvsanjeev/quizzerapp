@@ -363,23 +363,28 @@ Security notes:
 
 ### Analysis API (Days 26–28)
 
-- [ ] **T041** 🟡 Pydantic v2 schemas for analysis (9 response types)
+- [x] **T041** 🟡 Pydantic v2 schemas for analysis (9 response types)
   - Path: `backend/app/schemas/analysis.py`
-  - Schemas: `OverviewOut`, `PerformanceOut`, `TimeOut`, `AttemptsOut`, `DifficultyOut`, `SubjectMovementOut`, `QuestionJourneyOut`, `QuestionDetailOut`, `QuestionListOut`
+  - `OverviewOut`, `PerformanceOut`, `TimeOut`, `AttemptsBreakdownOut`, `DifficultyOut`,
+    `SubjectMovementOut`, `QuestionJourneyOut`, `QuestionDetailOut`, `QuestionListOut` (+ nested
+    item schemas). All money/score fields typed `float` → JSON numbers.
 
-- [ ] **T042** 🟡 Contract tests for analysis routes
-  - Path: `backend/tests/contract/test_analysis_api.py`
-  - Tests: GET /api/analysis/{id}/overview, /performance, /time, /attempts, /difficulty, /subject-movement, /question-journey, /question/{qid}, /questions
+- [x] **T042** 🟡 Contract tests for analysis routes
+  - Path: `backend/tests/contract/test_analysis_api.py` (14 tests)
+  - All 9 sections + auth (401/403 other-student/200 paper-teacher/404); asserts numbers from a
+    fixture attempt (1 correct / 1 wrong / 1 blank → score 3, accuracy 50%, difficulty buckets).
 
-- [ ] **T043** 🟡 Analysis service
+- [x] **T043** 🟡 Analysis service
   - Path: `backend/app/services/analysis_service.py`
-  - Functions: `compute_subject_stats(attempt_id)` called synchronously on submit
-  - Functions: `get_overview`, `get_performance`, `get_time_analysis`, `get_attempts_analysis`, `get_difficulty_analysis`, `get_subject_movement`, `get_question_journey`, `get_question_detail`, `get_question_list`
+  - `compute_subject_stats(db, attempt)` (idempotent) — now owns subject-stats; `submit_attempt`
+    calls it. `authorize()` (owner/admin/paper-teacher). `load_context()` loads everything once;
+    getters `get_overview`/`get_performance`/`get_time`/`get_attempts_breakdown`/`get_difficulty`/
+    `get_subject_movement`/`get_question_journey`/`get_question_detail`/`get_question_list`.
 
-- [ ] **T044** 🟡 Analysis API routes
-  - Path: `backend/app/api/routes/analysis.py`
-  - Implements all 9 analysis endpoints from `docs/specifications/api-endpoints.md`
-  - Auth: attempt owner, teacher (their students), or admin
+- [x] **T044** 🟡 Analysis API routes
+  - Path: `backend/app/api/routes/analysis.py` (registered in main.py)
+  - All 9 `GET /api/analysis/{id}/…` endpoints via a `get_context` dependency (404/403 there).
+  - GREEN: 14 T042 tests; full suite 99 passed, no regressions.
 
 ### Analysis Frontend — Layout + Overview (Day 29)
 
@@ -522,13 +527,13 @@ Security notes:
 | Phase 1b: Password Reset | 4 | 4 ✅ | 0 |
 | Phase 2: Exam Mgmt | 14 | 14 ✅ | 0 |
 | Phase 3: Exam Taking | 11 | 11 ✅ | 0 |
-| Phase 4: Analysis | 13 | 0 | 13 |
+| Phase 4: Analysis | 13 | 4 | 9 |
 | Phase 5: RAG/AI | 7 | 0 | 7 |
 | Phase 6: Polish | 7 | 0 | 7 |
 | **Total** | **71** | **25** | **46** |
 
-**Current**: 44/71 tasks complete (62%) — Phase 3 complete  
-**Next task**: T041 — Pydantic v2 schemas for analysis (Phase 4 start)
+**Current**: 48/71 tasks complete (68%) — Phase 4 analysis API complete  
+**Next task**: T045 — Analysis page layout + navigation (Phase 4 frontend; T045–T053 Recharts UI)
 
 ---
 

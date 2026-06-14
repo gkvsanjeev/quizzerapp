@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models.exam import Exam, Subject, Topic
 from app.models.question import Option, Question
-from app.models.attempt import Attempt, AttemptAnswer, AttemptStatus, AttemptSubjectStats
+from app.models.attempt import Attempt, AttemptAnswer, AttemptStatus
 from app.models.test_paper import TestPaper, TestPaperQuestion
 from app.schemas.attempt import (
     AnswerStateOut,
@@ -19,6 +19,7 @@ from app.schemas.attempt import (
     QuestionStudentOut,
     TestPaperBrief,
 )
+from app.services import analysis_service
 
 
 # ─── Lookups ────────────────────────────────────────────
@@ -159,9 +160,8 @@ async def submit_attempt(db: AsyncSession, attempt: Attempt) -> AttemptResultOut
     ).scalars().all()
     question_ids = [t.question_id for t in tpqs]
 
-    # Correct option per question + each question's subject.
+    # Correct option per question.
     correct_by_q: dict[UUID, UUID] = {}
-    subject_by_q: dict[UUID, UUID] = {}
     if question_ids:
         opt_rows = (
             await db.execute(
@@ -171,12 +171,6 @@ async def submit_attempt(db: AsyncSession, attempt: Attempt) -> AttemptResultOut
             )
         ).all()
         correct_by_q = {qid: oid for qid, oid in opt_rows}
-        subj_rows = (
-            await db.execute(
-                select(Question.id, Question.subject_id).where(Question.id.in_(question_ids))
-            )
-        ).all()
-        subject_by_q = {qid: sid for qid, sid in subj_rows}
 
     # Student's answers.
     answers = (
@@ -188,42 +182,17 @@ async def submit_attempt(db: AsyncSession, attempt: Attempt) -> AttemptResultOut
     penalty = Decimal("0")
     correct = incorrect = attempted = 0
 
-    # Per-subject accumulators.
-    stats: dict[UUID, dict] = {}
-
-    def _bucket(subject_id: UUID) -> dict:
-        return stats.setdefault(
-            subject_id,
-            {"correct": 0, "incorrect": 0, "unattempted": 0, "time": 0, "score": Decimal("0"), "max": Decimal("0")},
-        )
-
     for tpq in tpqs:
-        subject_id = subject_by_q.get(tpq.question_id)
-        bucket = _bucket(subject_id) if subject_id else None
-        if bucket is not None:
-            bucket["max"] += tpq.marks
         ans = answer_by_q.get(tpq.question_id)
-        if bucket is not None and ans is not None:
-            bucket["time"] += ans.time_spent_seconds
-
         if ans is None or ans.selected_option_id is None:
-            if bucket is not None:
-                bucket["unattempted"] += 1
             continue
-
         attempted += 1
         if ans.selected_option_id == correct_by_q.get(tpq.question_id):
             correct += 1
             raw_score += tpq.marks
-            if bucket is not None:
-                bucket["correct"] += 1
-                bucket["score"] += tpq.marks
         else:
             incorrect += 1
             penalty += tpq.negative_marks
-            if bucket is not None:
-                bucket["incorrect"] += 1
-                bucket["score"] -= tpq.negative_marks
 
     final_score = raw_score - penalty
 
@@ -231,22 +200,10 @@ async def submit_attempt(db: AsyncSession, attempt: Attempt) -> AttemptResultOut
     attempt.submitted_at = datetime.now(timezone.utc)
     attempt.raw_score = raw_score
     attempt.final_score = final_score
-
-    for subject_id, b in stats.items():
-        db.add(
-            AttemptSubjectStats(
-                attempt_id=attempt.id,
-                subject_id=subject_id,
-                correct_count=b["correct"],
-                incorrect_count=b["incorrect"],
-                skipped_count=0,
-                unattempted_count=b["unattempted"],
-                total_time_seconds=b["time"],
-                score=b["score"],
-                max_score=b["max"],
-            )
-        )
     await db.commit()
+
+    # Per-subject stats (analysis_service owns this; computed synchronously on submit).
+    await analysis_service.compute_subject_stats(db, attempt)
 
     rank, percentile = await _rank_and_percentile(db, paper_id, final_score)
     attempt.rank = rank
