@@ -138,7 +138,7 @@
 
 ### Exam Management API (Days 8–10)
 
-- [ ] **T019** 🔴 Contract tests for exam routes
+- [x] **T019** 🔴 Contract tests for exam routes
   - Path: `backend/tests/contract/test_exam_api.py`
   - Tests: GET /api/exams (list + filter), POST /api/exams (201 created), GET /api/exams/{id}, PUT /api/exams/{id}
   - Run tests FIRST to confirm they fail; implement routes to make them pass
@@ -434,15 +434,15 @@
 |---|---|---|---|
 | Phase 0: Scaffold | 5 | 5 ✅ | 0 |
 | Phase 1: Auth + DB | 10 | 10 ✅ | 0 |
-| Phase 2: Exam Mgmt | 14 | 3 | 11 |
+| Phase 2: Exam Mgmt | 14 | 4 | 10 |
 | Phase 3: Exam Taking | 11 | 0 | 11 |
 | Phase 4: Analysis | 13 | 0 | 13 |
 | Phase 5: RAG/AI | 7 | 0 | 7 |
 | Phase 6: Polish | 7 | 0 | 7 |
-| **Total** | **67** | **18** | **49** |
+| **Total** | **67** | **19** | **48** |
 
-**Current**: 18/67 tasks complete (27%)  
-**Next task**: T019 — Contract tests for exam routes
+**Current**: 19/67 tasks complete (28%)  
+**Next task**: T020 — Exam CRUD API routes
 
 ---
 
