@@ -86,6 +86,29 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        <div className="mt-8">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">My exams</h2>
+          <Link to="/attempts" className="group block max-w-sm">
+            <Card className="h-full transition-shadow hover:shadow-md">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
+                    <FileText className="h-5 w-5" />
+                  </span>
+                  <CardTitle className="text-base font-semibold group-hover:text-primary">
+                    My Attempts
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  View your exam history, scores, and analysis
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
         {(user?.role === 'teacher' || user?.role === 'admin') && (
           <div className="mt-8">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Teacher console</h2>

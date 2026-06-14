@@ -8,6 +8,8 @@ import Dashboard from '@/pages/dashboard/Dashboard'
 import ExamsPage from '@/pages/teacher/ExamsPage'
 import QuestionBankPage from '@/pages/teacher/QuestionBankPage'
 import TestPaperPage from '@/pages/teacher/TestPaperPage'
+import ExamPage from '@/pages/exam/ExamPage'
+import AttemptsPage from '@/pages/student/AttemptsPage'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { useAuthStore } from '@/store/authStore'
@@ -58,6 +60,22 @@ export default function App() {
               element={
                 <PrivateRoute>
                   <TestPaperPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/attempts"
+              element={
+                <PrivateRoute>
+                  <AttemptsPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/exam/:attemptId"
+              element={
+                <PrivateRoute>
+                  <ExamPage />
                 </PrivateRoute>
               }
             />

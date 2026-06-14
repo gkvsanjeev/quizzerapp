@@ -276,7 +276,7 @@ Security notes:
 
 ---
 
-## 🟡 PHASE 3: Exam Taking (Weeks 3–4)
+## ✅ PHASE 3: Exam Taking (Complete)
 
 ### Attempt API (Days 18–20)
 
@@ -314,41 +314,48 @@ Security notes:
 
 ### Exam Session State (Day 21)
 
-- [ ] **T035** 🟡 Zustand examSessionStore
+> Built via the shadcn subagent pipeline (analyze → build; no new components — all 19 already
+> installed). Shared foundation I built directly: attempt data layer (`types/attempt.ts`,
+> `services/attempts.ts`, `hooks/useAttempts.ts`) + the Zustand store (T035). Verified live with
+> Playwright (`tests/playwright/exam-ui.spec.ts`, 3 serial tests passing); `tsc --noEmit` clean.
+> Backend fix needed for the UI: Decimal score/marks fields now serialize as JSON numbers, and
+> `AttemptSummaryOut` gained `test_paper_title` (committed separately).
+
+- [x] **T035** 🟡 Zustand examSessionStore
   - Path: `frontend/src/store/examSessionStore.ts`
-  - State: `{ attemptId, questions, currentIndex, localAnswers, markedForReview, timeElapsedSeconds, isPaused }`
-  - Actions: `setAnswer`, `markForReview`, `nextQuestion`, `prevQuestion`, `goToQuestion`, `syncFromServer`
-  - Persists to `sessionStorage` for browser-refresh resume
+  - State `{ attemptId, testPaper, questions, currentIndex, localAnswers, markedForReview,
+    timeElapsedSeconds, isPaused }`; actions `syncFromServer`, `setAnswer`, `markForReview`,
+    `nextQuestion`, `prevQuestion`, `goToQuestion`, `tick`, `setPaused`, `reset`; persisted to
+    sessionStorage. Helper `questionStatus()` for palette colour.
 
 ### Exam Interface UI (Days 22–25)
 
-- [ ] **T036** 🟡 Exam layout and routing
-  - Path: `frontend/src/pages/exam/ExamPage.tsx`
-  - Fetches attempt state on mount, hydrates examSessionStore
-  - Handles full-screen toggle (`document.documentElement.requestFullscreen()`)
-  - On unmount: sync timer to server
+- [x] **T036** 🟡 Exam layout and routing
+  - Path: `frontend/src/pages/exam/ExamPage.tsx` (route `/exam/:attemptId`)
+  - `useAttempt` → `syncFromServer`; immersive layout; full-screen toggle; submit AlertDialog.
+  - Gates the body until the store is synced to this attempt (prevents the timer racing an
+    unloaded session). Redirects to `/attempts` on submit (analysis page lands in Phase 4).
 
-- [ ] **T037** 🟡 Question display component
+- [x] **T037** 🟡 Question display component
   - Path: `frontend/src/components/exam/QuestionDisplay.tsx`
-  - Shows: question number, text, optional image, 4 option radio buttons
-  - On option click: calls `PUT /api/attempts/{id}/answer` + updates local store optimistically
+  - Question number/text/image, difficulty badge, 4-option RadioGroup; option select →
+    optimistic `setAnswer` + `PUT /answer` with dwell time. Prev / Mark-for-review / Clear / Next.
 
-- [ ] **T038** 🟡 Question palette component
+- [x] **T038** 🟡 Question palette component
   - Path: `frontend/src/components/exam/QuestionPalette.tsx`
-  - Grid of numbered buttons (1..N)
-  - Color coding: unattempted (grey), answered (green), marked for review (orange), answered + marked (purple)
-  - Click → navigate to that question
+  - Numbered grid coloured by `questionStatus` (unanswered/answered/marked/answered-marked) +
+    legend; click → `goToQuestion`.
 
-- [ ] **T039** 🟡 Exam timer component
+- [x] **T039** 🟡 Exam timer component
   - Path: `frontend/src/components/exam/ExamTimer.tsx`
-  - Counts down from `duration_seconds - time_elapsed_seconds`
-  - Shows HH:MM:SS; turns red at < 5 minutes
-  - On expiry: calls `POST /api/attempts/{id}/submit` → redirect to analysis
+  - Owns its own 1s interval (only subscriber to `timeElapsedSeconds`); HH:MM:SS, red < 5 min;
+    auto-submit on expiry (guarded so it never fires before the session loads). Redirect to
+    `/attempts`.
 
-- [ ] **T040** 🟡 Attempt history page (student)
-  - Path: `frontend/src/pages/student/AttemptsPage.tsx`
-  - GET /api/attempts (filtered by current user)
-  - Table: test paper name, date, score, rank, percentile, link to analysis
+- [x] **T040** 🟡 Attempt history page (student)
+  - Path: `frontend/src/pages/student/AttemptsPage.tsx` (route `/attempts`; Dashboard link added)
+  - Table: test paper title, date, status badge, score, rank, percentile; Resume (in-progress)
+    or View Analysis link. Backend `AttemptSummaryOut.test_paper_title` added for the name.
 
 ---
 
@@ -514,14 +521,14 @@ Security notes:
 | Phase 1: Auth + DB | 10 | 10 ✅ | 0 |
 | Phase 1b: Password Reset | 4 | 4 ✅ | 0 |
 | Phase 2: Exam Mgmt | 14 | 14 ✅ | 0 |
-| Phase 3: Exam Taking | 11 | 5 | 6 |
+| Phase 3: Exam Taking | 11 | 11 ✅ | 0 |
 | Phase 4: Analysis | 13 | 0 | 13 |
 | Phase 5: RAG/AI | 7 | 0 | 7 |
 | Phase 6: Polish | 7 | 0 | 7 |
 | **Total** | **71** | **25** | **46** |
 
-**Current**: 38/71 tasks complete (54%) — Phase 3 attempt API complete  
-**Next task**: T035 — Zustand examSessionStore (Phase 3 frontend; T035–T040 exam UI)
+**Current**: 44/71 tasks complete (62%) — Phase 3 complete  
+**Next task**: T041 — Pydantic v2 schemas for analysis (Phase 4 start)
 
 ---
 
