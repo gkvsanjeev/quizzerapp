@@ -2,9 +2,19 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
+from app.config import settings
 from app.models.user import User
-from app.schemas.auth import LoginIn, RefreshOut, RegisterIn, TokenOut, UserOut
+from app.schemas.auth import (
+    ForgotPasswordIn,
+    LoginIn,
+    RefreshOut,
+    RegisterIn,
+    ResetPasswordIn,
+    TokenOut,
+    UserOut,
+)
 from app.services import auth_service
+from app.services.notifications import send_password_reset_email
 
 router = APIRouter()
 
@@ -83,6 +93,26 @@ async def logout(
     if refresh_token_cookie:
         await auth_service.revoke_refresh_token(db, refresh_token_cookie)
     response.delete_cookie(_COOKIE)
+
+
+@router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
+async def forgot_password(data: ForgotPasswordIn, db: AsyncSession = Depends(get_db)):
+    result = await auth_service.create_password_reset(db, data.email)
+    if result is not None:
+        user, raw_token = result
+        reset_url = f"{settings.FRONTEND_URL}/reset-password?token={raw_token}"
+        await send_password_reset_email(user.email, reset_url)
+    # Always the same response — never reveal whether the email exists.
+    return {"message": "If an account exists for that email, a reset link has been sent."}
+
+
+@router.post("/reset-password")
+async def reset_password(data: ResetPasswordIn, db: AsyncSession = Depends(get_db)):
+    try:
+        await auth_service.reset_password(db, data.token, data.new_password)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    return {"message": "Password updated. Please log in with your new password."}
 
 
 @router.get("/me", response_model=UserOut)
