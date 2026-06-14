@@ -1,23 +1,27 @@
 import type { ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { BookOpen, FileText, GraduationCap, LayoutDashboard, LogOut } from 'lucide-react'
+import { BookOpen, ClipboardList, FileText, GraduationCap, LayoutDashboard, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { authApi } from '@/services/auth'
 import { setAccessToken } from '@/services/api'
 import { useAuthStore } from '@/store/authStore'
+import type { UserRole } from '@/types/auth'
 
 interface NavItem {
   to: string
   label: string
   icon: typeof BookOpen
+  /** Roles allowed to see this link; omit for all authenticated users. */
+  roles?: UserRole[]
 }
 
 const NAV: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/teacher/exams', label: 'Exams', icon: GraduationCap },
-  { to: '/teacher/questions', label: 'Question Bank', icon: BookOpen },
-  { to: '/teacher/test-papers', label: 'Test Papers', icon: FileText },
+  { to: '/teacher/exams', label: 'Exams', icon: GraduationCap, roles: ['teacher', 'admin'] },
+  { to: '/teacher/questions', label: 'Question Bank', icon: BookOpen, roles: ['teacher', 'admin'] },
+  { to: '/teacher/test-papers', label: 'Test Papers', icon: FileText, roles: ['teacher', 'admin'] },
+  { to: '/attempts', label: 'My Attempts', icon: ClipboardList },
 ]
 
 interface TeacherPageShellProps {
@@ -43,6 +47,8 @@ export function TeacherPageShell({ title, description, action, children }: Teach
     }
   }
 
+  const navItems = NAV.filter((item) => !item.roles || (user ? item.roles.includes(user.role) : false))
+
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Top bar */}
@@ -56,7 +62,7 @@ export function TeacherPageShell({ title, description, action, children }: Teach
           </Link>
 
           <nav className="flex flex-1 items-center gap-1 overflow-x-auto">
-            {NAV.map(({ to, label, icon: Icon }) => {
+            {navItems.map(({ to, label, icon: Icon }) => {
               const active = location.pathname === to
               return (
                 <Link

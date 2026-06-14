@@ -112,6 +112,14 @@ test.describe.serial('Exam taking', () => {
 
     await page.locator('a[href="/attempts"]').click()
     await expect(page).toHaveURL(/\/attempts$/)
+
+    // Students must NOT see teacher-only nav links.
+    const nav = page.getByRole('banner')
+    await expect(nav.getByRole('link', { name: 'My Attempts' })).toBeVisible()
+    await expect(nav.getByRole('link', { name: 'Exams' })).toHaveCount(0)
+    await expect(nav.getByRole('link', { name: 'Question Bank' })).toHaveCount(0)
+    await expect(nav.getByRole('link', { name: 'Test Papers' })).toHaveCount(0)
+
     const row = page.getByRole('row', { name: new RegExp(PAPER_TITLE) })
     await expect(row).toBeVisible()
     await expect(row.getByText('In Progress')).toBeVisible()
