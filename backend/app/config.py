@@ -21,6 +21,21 @@ class Settings(BaseSettings):
     # Public base URL of the frontend SPA — used to build password-reset links.
     FRONTEND_URL: str = "http://localhost:5173"
 
+    # ── Email / SMTP (Gmail) ──────────────────────────────────────────────
+    # Gmail requires an App Password (16 chars, 2-Step Verification enabled),
+    # NOT the account password. Set SMTP_PASSWORD in .env; never commit it.
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = "sanjiv.gkv@gmail.com"
+    SMTP_PASSWORD: str = ""  # Gmail App Password — from .env only
+    SMTP_FROM_EMAIL: str = "sanjiv.gkv@gmail.com"
+    SMTP_FROM_NAME: str = "QuizzerApp"
+    SMTP_START_TLS: bool = True  # STARTTLS on port 587
+
+    @property
+    def smtp_configured(self) -> bool:
+        return bool(self.SMTP_PASSWORD and self.SMTP_USER)
+
     OPENAI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
     VERCEL_BLOB_READ_WRITE_TOKEN: str = ""
