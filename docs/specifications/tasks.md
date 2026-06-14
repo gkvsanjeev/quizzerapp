@@ -229,9 +229,13 @@ Security notes:
 
 ### Test Paper API (Days 13–14)
 
-- [ ] **T024** 🔴 Contract tests for test paper routes
+- [x] **T024** 🔴 Contract tests for test paper routes
   - Path: `backend/tests/contract/test_testpaper_api.py`
-  - Tests: GET /api/exams/{id}/test-papers, POST (create), POST /{id}/questions (add questions)
+  - Tests: GET /api/exams/{id}/test-papers (401, empty [], 404 nonexistent exam), POST create
+    (201 owner, 403 student, 401 anon, 422 missing duration, 404 nonexistent exam, round-trips
+    into list), POST /api/test-papers/{id}/questions (200 {added: n}, 403 student, 401 anon,
+    404 nonexistent paper)
+  - RED confirmed: 10 fail (routes 404), 3 pass (the nonexistent→404 cases). Green after T025.
 
 - [ ] **T025** 🔴 Test paper API routes
   - Path: `backend/app/api/routes/exams.py` (extend) or `test_papers.py`
@@ -496,15 +500,15 @@ Security notes:
 | Phase 0: Scaffold | 5 | 5 ✅ | 0 |
 | Phase 1: Auth + DB | 10 | 10 ✅ | 0 |
 | Phase 1b: Password Reset | 4 | 4 ✅ | 0 |
-| Phase 2: Exam Mgmt | 14 | 8 | 6 |
+| Phase 2: Exam Mgmt | 14 | 9 | 5 |
 | Phase 3: Exam Taking | 11 | 0 | 11 |
 | Phase 4: Analysis | 13 | 0 | 13 |
 | Phase 5: RAG/AI | 7 | 0 | 7 |
 | Phase 6: Polish | 7 | 0 | 7 |
 | **Total** | **71** | **25** | **46** |
 
-**Current**: 27/71 tasks complete (38%)  
-**Next task**: T024 — Contract tests for test paper routes
+**Current**: 28/71 tasks complete (39%)  
+**Next task**: T025 — Test paper API routes (makes T024 tests green)
 
 ---
 
