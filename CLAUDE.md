@@ -196,8 +196,82 @@ See `docs/RAG.md` for full pipeline. Entry point: `POST /api/rag/generate-questi
 
 ---
 
-## Reference Specifications
-- **Database schema**: `docs/DATABASE.md`
-- **API endpoints**: `docs/API.md`
-- **RAG pipeline**: `docs/RAG.md`
-- **Architecture decisions**: `docs/ARCHITECTURE.md`
+## Spec-Driven Development
+
+This project follows a spec-driven approach. Always read the relevant spec before implementing.
+
+### Spec Files (read these before coding)
+
+| What | File |
+|---|---|
+| **Current task** → what to build next | `docs/specifications/tasks.md` |
+| Business requirements (WHAT, not HOW) | `docs/specifications/business-requirements.md` |
+| System architecture + design decisions | `docs/specifications/technical-architecture.md` |
+| Technology research + ADRs | `docs/specifications/research.md` |
+| Database schema (14 tables, DDL) | `docs/specifications/database-design.md` |
+| REST API reference (all 40+ endpoints) | `docs/specifications/api-endpoints.md` |
+| OpenAPI 3.0 spec (contract testing) | `docs/specifications/contracts/api-spec.yaml` |
+| User journeys for validation | `docs/specifications/quickstart.md` |
+| RAG pipeline design | `docs/specifications/rag-pipeline.md` |
+| Contract test guide | `docs/specifications/contracts/README.md` |
+| Dev setup + commands + conventions | `docs/development/README.md` |
+| Task workflow + contribution rules | `docs/guides/contributing.md` |
+
+### Implementation Order
+
+```
+Check tasks.md → find next [ ] task → read linked spec → follow task template
+Backend: schema → contract test (RED) → implementation (GREEN) → mark [x]
+Frontend: create file → wire TQ hook → manual verify → mark [x]
+```
+
+### Session Naming Convention
+
+Before starting a new task, name the session after that task so the conversation
+history stays searchable per task. `/rename` is a built-in Claude Code command that
+only the user can run, so Claude must **proactively suggest the rename command** as the
+first step of each new task and wait for the user to run it.
+
+Format: `/rename QuizzerApp <Phase> — <Task Description> (<TaskID>)`
+Example: `/rename QuizzerApp Phase 2 — Exam Domain Schemas (T016)`
+
+### Per-Task Git Workflow
+
+Every task is done on its own branch and pushed when complete. Steps:
+
+```
+1. Branch:  git checkout -b feature/<TaskID>-<slug>     (e.g. feature/T016-exam-schemas)
+            Branch naming follows docs/guides/contributing.md → Git Conventions.
+2. Implement + test (see Per-Task Testing below).
+3. Commit:  git add -A && git commit per the type(scope) format in contributing.md
+            (e.g. feat(T016): add Pydantic schemas for exam domain).
+            End the commit message with the Co-Authored-By trailer.
+4. Push:    git push -u origin feature/<TaskID>-<slug>
+5. Report the branch name + pushed commit SHA to the user.
+```
+
+Notes:
+- One branch + one commit per task; branch off `main` unless the task depends on an
+  unmerged prior task's branch.
+- Confirm a remote named `origin` exists before pushing; if none, tell the user instead
+  of failing silently.
+
+### Per-Task Testing
+
+Pick the verification that matches the task's surface — do not skip:
+
+- **Backend tasks** (schemas, services, routes): contract tests with `pytest` under
+  `backend/tests/contract/`, following the RED → GREEN cycle in the Backend Task Template.
+  Pure-schema tasks (e.g. T016–T018) have no HTTP/UI surface yet — verify via import +
+  field assertions; the contract test arrives with the route task.
+- **Frontend / UI tasks**: use the **Playwright MCP server** to drive the running app in a
+  real browser, verify the happy path + error states, then persist the flow as a spec under
+  `tests/playwright/<feature>.spec.ts` so each UI task leaves a repeatable test case behind.
+- A task that touches both layers gets both: contract test for the API + a Playwright spec
+  for the UI flow.
+
+### Legacy Spec Files (original, kept for reference)
+- `docs/DATABASE.md` — original DDL reference
+- `docs/API.md` — original API spec
+- `docs/RAG.md` — RAG pipeline design
+- `docs/ARCHITECTURE.md` — architecture decision records
