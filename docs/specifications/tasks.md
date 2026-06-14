@@ -171,7 +171,7 @@ Security notes:
 
 ---
 
-## 🔄 PHASE 2: Exam Management API + UI (In Progress)
+## ✅ PHASE 2: Exam Management API + UI (Complete)
 
 **TDD cycle for each domain**: Schemas → Contract Tests → Routes → Frontend
 
@@ -250,23 +250,29 @@ Security notes:
 
 ### Teacher UI (Days 15–17)
 
-- [ ] **T027** 🔴 Exam management page (teacher)
-  - Path: `frontend/src/pages/teacher/ExamsPage.tsx`
-  - Lists all exams created by teacher
-  - "Create Exam" form: title, description, exam_type
-  - Add Subject form (inline under each exam)
+> Built via the shadcn subagent pipeline (analyze → research → build). Shared foundation:
+> data layer (`types/{exam,question,testPaper}.ts`, `services/*`, `hooks/use{Exams,Questions,TestPapers}.ts`),
+> `components/teacher/{TeacherPageShell,DifficultyBadge}.tsx`, 15 shadcn primitives, `Toaster`
+> + `TooltipProvider` in `App.tsx`, teacher console links on the Dashboard. Verified live with
+> Playwright (`tests/playwright/teacher-ui.spec.ts`, 3 serial tests passing); `tsc --noEmit` clean.
 
-- [ ] **T028** 🔴 Question bank page (teacher)
-  - Path: `frontend/src/pages/teacher/QuestionBankPage.tsx`
-  - Filter panel: subject, topic, difficulty, tags
-  - Question list with edit/delete actions
-  - "Add Question" form: text, 4 options (radio for correct answer), difficulty, tags
+- [x] **T027** 🔴 Exam management page (teacher)
+  - Path: `frontend/src/pages/teacher/ExamsPage.tsx` (+ `CreateExamDialog`, `ExamCard`)
+  - Exam cards (title, exam_type + published/draft badges), Create Exam dialog (title,
+    description, exam_type), inline add-subject per card with subject chips.
 
-- [ ] **T029** 🔴 Test paper creation page (teacher)
-  - Path: `frontend/src/pages/teacher/TestPaperPage.tsx`
-  - Step 1: Paper settings (title, duration, total_marks, negative_marking_factor)
-  - Step 2: Question selector (searchable filtered question bank, checkboxes)
-  - Step 3: Set per-question marks; confirm and create
+- [x] **T028** 🔴 Question bank page (teacher)
+  - Path: `frontend/src/pages/teacher/QuestionBankPage.tsx` (+ `QuestionFormDialog`, `DeleteQuestionDialog`)
+  - Filter panel: exam→subject cascade, difficulty, search; table with DifficultyBadge,
+    edit/delete; Add dialog with 4 options + correct-answer radio. Subject names resolved via
+    `useSubjectNameMap` (no global subjects endpoint). Edit limited to text/difficulty/
+    explanation/tags (options immutable per `QuestionUpdatePayload`).
+
+- [x] **T029** 🔴 Test paper creation page (teacher)
+  - Path: `frontend/src/pages/teacher/TestPaperPage.tsx` (+ `wizard/Step{Settings,SelectQuestions,Marks}`)
+  - 3-step wizard with Progress indicator: settings (exam, duration min→sec, marks, shuffle
+    Switches) → checkbox question selector (ScrollArea, select-all) → per-question marks table
+    → create paper then bulk-add questions. Verified end-to-end (201 + 200 network calls).
 
 ---
 
@@ -502,15 +508,15 @@ Security notes:
 | Phase 0: Scaffold | 5 | 5 ✅ | 0 |
 | Phase 1: Auth + DB | 10 | 10 ✅ | 0 |
 | Phase 1b: Password Reset | 4 | 4 ✅ | 0 |
-| Phase 2: Exam Mgmt | 14 | 11 | 3 |
+| Phase 2: Exam Mgmt | 14 | 14 ✅ | 0 |
 | Phase 3: Exam Taking | 11 | 0 | 11 |
 | Phase 4: Analysis | 13 | 0 | 13 |
 | Phase 5: RAG/AI | 7 | 0 | 7 |
 | Phase 6: Polish | 7 | 0 | 7 |
 | **Total** | **71** | **25** | **46** |
 
-**Current**: 30/71 tasks complete (42%)  
-**Next task**: T027 — Exam management page (teacher) — first Phase 2 frontend task
+**Current**: 33/71 tasks complete (46%) — Phase 2 complete  
+**Next task**: T030 — Pydantic v2 schemas for attempt domain (Phase 3 start)
 
 ---
 

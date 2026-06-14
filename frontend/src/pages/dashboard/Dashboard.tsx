@@ -1,9 +1,31 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { BookOpen, FileText, GraduationCap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { authApi } from '@/services/auth'
 import { setAccessToken } from '@/services/api'
 import { useAuthStore } from '@/store/authStore'
+
+const TEACHER_LINKS = [
+  {
+    to: '/teacher/exams',
+    label: 'Exams',
+    description: 'Create exam series and subjects',
+    icon: GraduationCap,
+  },
+  {
+    to: '/teacher/questions',
+    label: 'Question Bank',
+    description: 'Add and organise questions',
+    icon: BookOpen,
+  },
+  {
+    to: '/teacher/test-papers',
+    label: 'Test Papers',
+    description: 'Assemble timed mock tests',
+    icon: FileText,
+  },
+]
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -64,11 +86,32 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <Card className="mt-8">
-          <CardContent className="p-12 text-center text-muted-foreground">
-            <p className="text-lg">Exams and test papers will appear here once configured.</p>
-          </CardContent>
-        </Card>
+        {(user?.role === 'teacher' || user?.role === 'admin') && (
+          <div className="mt-8">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">Teacher console</h2>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {TEACHER_LINKS.map(({ to, label, description, icon: Icon }) => (
+                <Link key={to} to={to} className="group">
+                  <Card className="h-full transition-shadow hover:shadow-md">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <CardTitle className="text-base font-semibold group-hover:text-primary">
+                          {label}
+                        </CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">{description}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

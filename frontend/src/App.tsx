@@ -5,6 +5,11 @@ import Register from '@/pages/auth/Register'
 import ForgotPassword from '@/pages/auth/ForgotPassword'
 import ResetPassword from '@/pages/auth/ResetPassword'
 import Dashboard from '@/pages/dashboard/Dashboard'
+import ExamsPage from '@/pages/teacher/ExamsPage'
+import QuestionBankPage from '@/pages/teacher/QuestionBankPage'
+import TestPaperPage from '@/pages/teacher/TestPaperPage'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { Toaster } from '@/components/ui/sonner'
 import { useAuthStore } from '@/store/authStore'
 
 const queryClient = new QueryClient()
@@ -17,23 +22,50 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route path="/" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <TooltipProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/teacher/exams"
+              element={
+                <PrivateRoute>
+                  <ExamsPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/teacher/questions"
+              element={
+                <PrivateRoute>
+                  <QuestionBankPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/teacher/test-papers"
+              element={
+                <PrivateRoute>
+                  <TestPaperPage />
+                </PrivateRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </BrowserRouter>
+        <Toaster position="top-right" richColors closeButton />
+      </TooltipProvider>
     </QueryClientProvider>
   )
 }
