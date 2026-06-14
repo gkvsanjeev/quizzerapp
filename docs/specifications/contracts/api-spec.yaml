@@ -1,0 +1,760 @@
+openapi: 3.0.3
+
+info:
+  title: QuizzerApp API
+  description: Exam test series platform for competitive exam preparation (JEE, NEET, UPSC, GATE)
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://your-app.vercel.app
+    description: Production
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ─── Auth ─────────────────────────────────────────────
+    UserOut:
+      type: object
+      required: [id, email, name, role, is_active, created_at]
+      properties:
+        id:         { type: string, format: uuid }
+        email:      { type: string, format: email }
+        name:       { type: string }
+        role:       { type: string, enum: [admin, teacher, student] }
+        is_active:  { type: boolean }
+        created_at: { type: string, format: date-time }
+
+    TokenOut:
+      type: object
+      required: [access_token, token_type, user]
+      properties:
+        access_token: { type: string }
+        token_type:   { type: string, example: bearer }
+        user:         { $ref: '#/components/schemas/UserOut' }
+
+    # ─── Exams ─────────────────────────────────────────────
+    ExamOut:
+      type: object
+      required: [id, title, exam_type, is_published, created_at]
+      properties:
+        id:           { type: string, format: uuid }
+        title:        { type: string }
+        description:  { type: string, nullable: true }
+        exam_type:    { type: string, example: JEE }
+        is_published: { type: boolean }
+        created_by:   { type: string, format: uuid }
+        created_at:   { type: string, format: date-time }
+        subjects:
+          type: array
+          items: { $ref: '#/components/schemas/SubjectOut' }
+          nullable: true
+
+    SubjectOut:
+      type: object
+      required: [id, name, order_index]
+      properties:
+        id:          { type: string, format: uuid }
+        name:        { type: string }
+        order_index: { type: integer }
+        topics:
+          type: array
+          items: { $ref: '#/components/schemas/TopicOut' }
+
+    TopicOut:
+      type: object
+      required: [id, name]
+      properties:
+        id:   { type: string, format: uuid }
+        name: { type: string }
+
+    # ─── Questions ────────────────────────────────────────
+    OptionOut:
+      type: object
+      required: [id, option_key, text]
+      properties:
+        id:         { type: string, format: uuid }
+        option_key: { type: string, enum: [A, B, C, D] }
+        text:       { type: string }
+        image_url:  { type: string, nullable: true }
+
+    QuestionOut:
+      type: object
+      required: [id, text, difficulty, subject_id, options, created_at]
+      properties:
+        id:            { type: string, format: uuid }
+        subject_id:    { type: string, format: uuid }
+        topic_id:      { type: string, format: uuid, nullable: true }
+        text:          { type: string }
+        image_url:     { type: string, nullable: true }
+        difficulty:    { type: string, enum: [easy, medium, hard] }
+        explanation:   { type: string, nullable: true }
+        tags:          { type: array, items: { type: string } }
+        source_doc_id: { type: string, format: uuid, nullable: true }
+        created_at:    { type: string, format: date-time }
+        options:
+          type: array
+          items: { $ref: '#/components/schemas/OptionOut' }
+
+    # ─── Test Papers ──────────────────────────────────────
+    TestPaperOut:
+      type: object
+      required: [id, exam_id, title, duration_seconds, total_marks, created_at]
+      properties:
+        id:                      { type: string, format: uuid }
+        exam_id:                 { type: string, format: uuid }
+        title:                   { type: string }
+        scheduled_at:            { type: string, format: date-time, nullable: true }
+        duration_seconds:        { type: integer }
+        total_marks:             { type: number }
+        negative_marking_factor: { type: number, default: 0.25 }
+        shuffle_questions:       { type: boolean }
+        shuffle_options:         { type: boolean }
+        created_at:              { type: string, format: date-time }
+
+    # ─── Attempts ─────────────────────────────────────────
+    OptionStudentOut:
+      description: Options returned during exam (no is_correct field)
+      type: object
+      required: [id, option_key, text]
+      properties:
+        id:         { type: string, format: uuid }
+        option_key: { type: string, enum: [A, B, C, D] }
+        text:       { type: string }
+        image_url:  { type: string, nullable: true }
+
+    QuestionStudentOut:
+      description: Question returned during exam (no correct answer revealed)
+      type: object
+      required: [id, text, difficulty, subject, options]
+      properties:
+        id:         { type: string, format: uuid }
+        text:       { type: string }
+        image_url:  { type: string, nullable: true }
+        difficulty: { type: string, enum: [easy, medium, hard] }
+        subject:    { type: string }
+        topic:      { type: string, nullable: true }
+        options:
+          type: array
+          items: { $ref: '#/components/schemas/OptionStudentOut' }
+
+    AnswerStateOut:
+      type: object
+      properties:
+        selected_option_id:   { type: string, format: uuid, nullable: true }
+        is_marked_for_review: { type: boolean }
+        visit_count:          { type: integer }
+
+    AttemptStateOut:
+      description: Full exam state returned on start or resume
+      type: object
+      required: [attempt_id, test_paper, questions, answers, started_at, time_elapsed_seconds]
+      properties:
+        attempt_id:           { type: string, format: uuid }
+        test_paper:
+          type: object
+          properties:
+            id:               { type: string, format: uuid }
+            title:            { type: string }
+            duration_seconds: { type: integer }
+            total_marks:      { type: number }
+        questions:
+          type: array
+          items: { $ref: '#/components/schemas/QuestionStudentOut' }
+        answers:
+          type: object
+          additionalProperties: { $ref: '#/components/schemas/AnswerStateOut' }
+          description: "Map of question_id → AnswerStateOut"
+        started_at:           { type: string, format: date-time }
+        time_elapsed_seconds: { type: integer }
+
+    AttemptResultOut:
+      type: object
+      required: [attempt_id, raw_score, final_score, total_questions]
+      properties:
+        attempt_id:      { type: string, format: uuid }
+        raw_score:       { type: number }
+        final_score:     { type: number }
+        rank:            { type: integer, nullable: true }
+        percentile:      { type: number, nullable: true }
+        total_questions: { type: integer }
+        attempted:       { type: integer }
+        correct:         { type: integer }
+        incorrect:       { type: integer }
+
+    # ─── Analysis ─────────────────────────────────────────
+    OverviewOut:
+      type: object
+      properties:
+        score:                { type: number }
+        max_score:            { type: number }
+        percentage:           { type: number }
+        rank:                 { type: integer }
+        percentile:           { type: number }
+        total_questions:      { type: integer }
+        attempted:            { type: integer }
+        correct:              { type: integer }
+        incorrect:            { type: integer }
+        unattempted:          { type: integer }
+        accuracy_percentage:  { type: number }
+        time_taken_seconds:   { type: integer }
+        duration_seconds:     { type: integer }
+        topper_score:         { type: number, nullable: true }
+        average_score:        { type: number, nullable: true }
+
+    # ─── RAG ──────────────────────────────────────────────
+    DocumentOut:
+      type: object
+      required: [id, filename, processing_status, created_at]
+      properties:
+        id:                { type: string, format: uuid }
+        filename:          { type: string }
+        file_type:         { type: string }
+        processing_status: { type: string, enum: [pending, processing, ready, failed] }
+        page_count:        { type: integer, nullable: true }
+        created_at:        { type: string, format: date-time }
+
+    GeneratedQuestion:
+      type: object
+      required: [text, options]
+      properties:
+        text:        { type: string }
+        explanation: { type: string, nullable: true }
+        options:
+          type: array
+          minItems: 4
+          maxItems: 4
+          items:
+            type: object
+            required: [option_key, text, is_correct]
+            properties:
+              option_key: { type: string, enum: [A, B, C, D] }
+              text:       { type: string }
+              is_correct: { type: boolean }
+
+    # ─── Common ───────────────────────────────────────────
+    PaginatedResponse:
+      type: object
+      required: [total, page, limit]
+      properties:
+        total: { type: integer }
+        page:  { type: integer }
+        limit: { type: integer }
+
+    ErrorDetail:
+      type: object
+      required: [detail]
+      properties:
+        detail: { type: string }
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ─── Auth ───────────────────────────────────────────────
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, name, password]
+              properties:
+                email:    { type: string, format: email }
+                name:     { type: string }
+                password: { type: string, minLength: 8 }
+                role:     { type: string, enum: [student, teacher], default: student }
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenOut' }
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorDetail' }
+        '422':
+          description: Validation error
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:    { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenOut' }
+        '401':
+          description: Invalid credentials
+
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Refresh access token using httpOnly cookie
+      responses:
+        '200':
+          description: New access token issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token: { type: string }
+                  token_type:   { type: string }
+        '401':
+          description: Refresh token invalid or expired
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke refresh token and clear cookie
+      responses:
+        '204': { description: Logged out }
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current authenticated user
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserOut' }
+        '401': { description: Not authenticated }
+
+  # ─── Exams ──────────────────────────────────────────────
+  /api/exams:
+    get:
+      tags: [Exams]
+      summary: List exams (paginated)
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: exam_type
+          schema: { type: string }
+        - in: query
+          name: published
+          schema: { type: boolean }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/ExamOut' }
+
+    post:
+      tags: [Exams]
+      summary: Create exam (teacher/admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, exam_type]
+              properties:
+                title:       { type: string }
+                description: { type: string }
+                exam_type:   { type: string }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExamOut' }
+        '403': { description: Insufficient role }
+
+  /api/exams/{exam_id}:
+    get:
+      tags: [Exams]
+      parameters:
+        - in: path
+          name: exam_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExamOut' }
+        '404': { $ref: '#/components/schemas/ErrorDetail' }
+
+    put:
+      tags: [Exams]
+      parameters:
+        - in: path
+          name: exam_id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:        { type: string }
+                description:  { type: string }
+                is_published: { type: boolean }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExamOut' }
+
+  /api/exams/{exam_id}/subjects:
+    get:
+      tags: [Exams]
+      parameters:
+        - in: path
+          name: exam_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SubjectOut' }
+
+    post:
+      tags: [Exams]
+      parameters:
+        - in: path
+          name: exam_id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:        { type: string }
+                order_index: { type: integer, default: 0 }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SubjectOut' }
+
+  # ─── Questions ──────────────────────────────────────────
+  /api/questions:
+    get:
+      tags: [Questions]
+      parameters:
+        - in: query
+          name: subject_id
+          schema: { type: string, format: uuid }
+        - in: query
+          name: topic_id
+          schema: { type: string, format: uuid }
+        - in: query
+          name: difficulty
+          schema: { type: string, enum: [easy, medium, hard] }
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/QuestionOut' }
+
+    post:
+      tags: [Questions]
+      summary: Create question (teacher/admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject_id, text, difficulty, options]
+              properties:
+                subject_id:  { type: string, format: uuid }
+                topic_id:    { type: string, format: uuid }
+                text:        { type: string }
+                image_url:   { type: string }
+                difficulty:  { type: string, enum: [easy, medium, hard] }
+                explanation: { type: string }
+                tags:        { type: array, items: { type: string } }
+                options:
+                  type: array
+                  minItems: 4
+                  maxItems: 4
+                  items:
+                    type: object
+                    required: [option_key, text, is_correct]
+                    properties:
+                      option_key: { type: string, enum: [A, B, C, D] }
+                      text:       { type: string }
+                      is_correct: { type: boolean }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QuestionOut' }
+
+  # ─── Attempts ───────────────────────────────────────────
+  /api/attempts:
+    post:
+      tags: [Attempts]
+      summary: Start a new exam attempt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [test_paper_id]
+              properties:
+                test_paper_id: { type: string, format: uuid }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AttemptStateOut' }
+        '409':
+          description: Already attempted this paper
+
+  /api/attempts/{attempt_id}:
+    get:
+      tags: [Attempts]
+      summary: Get or resume an existing attempt
+      parameters:
+        - in: path
+          name: attempt_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AttemptStateOut' }
+
+  /api/attempts/{attempt_id}/answer:
+    put:
+      tags: [Attempts]
+      summary: Auto-save an answer (called every 10s and on every answer change)
+      parameters:
+        - in: path
+          name: attempt_id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question_id, time_spent_delta_seconds]
+              properties:
+                question_id:             { type: string, format: uuid }
+                selected_option_id:      { type: string, format: uuid, nullable: true }
+                time_spent_delta_seconds: { type: integer }
+                is_marked_for_review:    { type: boolean }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved: { type: boolean }
+
+  /api/attempts/{attempt_id}/submit:
+    post:
+      tags: [Attempts]
+      summary: Submit exam (manual or auto on timer expiry)
+      parameters:
+        - in: path
+          name: attempt_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AttemptResultOut' }
+
+  # ─── Analysis ───────────────────────────────────────────
+  /api/analysis/{attempt_id}/overview:
+    get:
+      tags: [Analysis]
+      parameters:
+        - in: path
+          name: attempt_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OverviewOut' }
+
+  /api/analysis/{attempt_id}/questions:
+    get:
+      tags: [Analysis]
+      summary: Question-by-question table
+      parameters:
+        - in: path
+          name: attempt_id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: result
+          schema: { type: string, enum: [correct, incorrect, skipped] }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  questions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        question_id:     { type: string, format: uuid }
+                        question_number: { type: integer }
+                        subject:         { type: string }
+                        difficulty:      { type: string }
+                        your_answer:     { type: string, nullable: true }
+                        correct_answer:  { type: string }
+                        is_correct:      { type: boolean, nullable: true }
+                        time_spent_seconds: { type: integer }
+                        result:          { type: string, enum: [correct, incorrect, skipped, unattempted] }
+
+  # ─── RAG ────────────────────────────────────────────────
+  /api/rag/upload:
+    post:
+      tags: [RAG]
+      summary: Upload PDF or image for processing (teacher/admin only)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: Upload accepted, processing started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  document_id: { type: string, format: uuid }
+                  filename:    { type: string }
+                  status:      { type: string, example: pending }
+
+  /api/rag/generate-questions:
+    post:
+      tags: [RAG]
+      summary: Generate MCQ questions from a processed document (not saved yet)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [document_id, subject_id, count, difficulty]
+              properties:
+                document_id: { type: string, format: uuid }
+                subject_id:  { type: string, format: uuid }
+                topic_id:    { type: string, format: uuid }
+                count:       { type: integer, minimum: 1, maximum: 20 }
+                difficulty:  { type: string, enum: [easy, medium, hard] }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  questions:
+                    type: array
+                    items: { $ref: '#/components/schemas/GeneratedQuestion' }
+
+  /api/rag/questions/save:
+    post:
+      tags: [RAG]
+      summary: Save approved generated questions to the question bank
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [questions, subject_id, difficulty, document_id]
+              properties:
+                questions:   { type: array, items: { $ref: '#/components/schemas/GeneratedQuestion' } }
+                subject_id:  { type: string, format: uuid }
+                topic_id:    { type: string, format: uuid }
+                difficulty:  { type: string, enum: [easy, medium, hard] }
+                document_id: { type: string, format: uuid }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved_count:  { type: integer }
+                  question_ids: { type: array, items: { type: string, format: uuid } }
