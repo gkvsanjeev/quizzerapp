@@ -219,11 +219,13 @@ Security notes:
     (204, 403, 404)
   - RED confirmed: 14 fail (routes 404), 2 pass (the nonexistent→404 cases). Green after T023.
 
-- [ ] **T023** 🔴 Question CRUD API routes
-  - Path: `backend/app/api/routes/questions.py`
+- [x] **T023** 🔴 Question CRUD API routes
+  - Path: `backend/app/api/routes/questions.py` + `backend/app/services/question_service.py`
   - Routes: GET /api/questions, POST /api/questions, PUT /api/questions/{id}, DELETE /api/questions/{id}
-  - Filters: `?subject_id=&topic_id=&difficulty=&tags[]=&page=&limit=`
-  - POST requires teacher or admin; DELETE validates ownership
+  - Filters: `?subject_id=&topic_id=&difficulty=&page=&limit=` (tags filter deferred — not in api-spec.yaml GET params)
+  - POST/PUT/DELETE require teacher or admin; DELETE also validates ownership (creator or admin)
+  - Options eager-loaded (lazy="raise"); `QuestionOut` omits `is_correct`. Router registered in
+    `main.py` (T026 prereq). GREEN: all 16 T022 tests pass; full suite 58 passed, no regressions.
 
 ### Test Paper API (Days 13–14)
 
@@ -494,15 +496,15 @@ Security notes:
 | Phase 0: Scaffold | 5 | 5 ✅ | 0 |
 | Phase 1: Auth + DB | 10 | 10 ✅ | 0 |
 | Phase 1b: Password Reset | 4 | 4 ✅ | 0 |
-| Phase 2: Exam Mgmt | 14 | 7 | 7 |
+| Phase 2: Exam Mgmt | 14 | 8 | 6 |
 | Phase 3: Exam Taking | 11 | 0 | 11 |
 | Phase 4: Analysis | 13 | 0 | 13 |
 | Phase 5: RAG/AI | 7 | 0 | 7 |
 | Phase 6: Polish | 7 | 0 | 7 |
 | **Total** | **71** | **25** | **46** |
 
-**Current**: 26/71 tasks complete (37%)  
-**Next task**: T023 — Question CRUD API routes (makes T022 tests green)
+**Current**: 27/71 tasks complete (38%)  
+**Next task**: T024 — Contract tests for test paper routes
 
 ---
 

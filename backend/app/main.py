@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
 from app.config import settings
-from app.api.routes import auth, exams
+from app.api.routes import auth, exams, questions
 
 app = FastAPI(
     title="QuizzerApp API",
@@ -22,6 +22,7 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(exams.router, prefix="/api/exams", tags=["exams"])
+app.include_router(questions.router, prefix="/api/questions", tags=["questions"])
 
 
 @app.get("/api/health")
