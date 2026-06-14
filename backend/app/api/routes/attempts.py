@@ -59,10 +59,23 @@ async def list_attempts(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    attempts = await attempt_service.list_attempts(
+    rows = await attempt_service.list_attempts(
         db, user_id=user.id, test_paper_id=test_paper_id
     )
-    return [AttemptSummaryOut.model_validate(a) for a in attempts]
+    return [
+        AttemptSummaryOut(
+            id=a.id,
+            test_paper_id=a.test_paper_id,
+            test_paper_title=title,
+            status=a.status.value,
+            started_at=a.started_at,
+            submitted_at=a.submitted_at,
+            final_score=a.final_score,
+            rank=a.rank,
+            percentile=a.percentile,
+        )
+        for a, title in rows
+    ]
 
 
 @router.get("/{attempt_id}", response_model=AttemptStateOut)

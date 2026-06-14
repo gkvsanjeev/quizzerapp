@@ -1,5 +1,4 @@
 from datetime import datetime
-from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
@@ -42,7 +41,7 @@ class TestPaperBrief(BaseModel):
     id: UUID
     title: str
     duration_seconds: int
-    total_marks: Decimal
+    total_marks: float
 
 
 class AnswerStateOut(BaseModel):
@@ -73,10 +72,10 @@ class AnswerUpdate(BaseModel):
 # ─── Submit / result ────────────────────────────────────
 class AttemptResultOut(BaseModel):
     attempt_id: UUID
-    raw_score: Decimal
-    final_score: Decimal
+    raw_score: float
+    final_score: float
     rank: int | None = None
-    percentile: Decimal | None = None
+    percentile: float | None = None
     total_questions: int
     attempted: int
     correct: int
@@ -85,13 +84,12 @@ class AttemptResultOut(BaseModel):
 
 # ─── List / history ─────────────────────────────────────
 class AttemptSummaryOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: UUID
     test_paper_id: UUID
+    test_paper_title: str
     status: str
     started_at: datetime
     submitted_at: datetime | None = None
-    final_score: Decimal | None = None
+    final_score: float | None = None
     rank: int | None = None
-    percentile: Decimal | None = None
+    percentile: float | None = None

@@ -294,9 +294,15 @@ async def list_attempts(
     *,
     user_id: UUID,
     test_paper_id: UUID | None = None,
-) -> list[Attempt]:
-    stmt = select(Attempt).where(Attempt.user_id == user_id)
+) -> list[tuple[Attempt, str]]:
+    """Returns (attempt, test_paper_title) tuples for the user's attempts."""
+    stmt = (
+        select(Attempt, TestPaper.title)
+        .join(TestPaper, Attempt.test_paper_id == TestPaper.id)
+        .where(Attempt.user_id == user_id)
+    )
     if test_paper_id is not None:
         stmt = stmt.where(Attempt.test_paper_id == test_paper_id)
     stmt = stmt.order_by(Attempt.started_at.desc())
-    return list((await db.execute(stmt)).scalars().all())
+    rows = (await db.execute(stmt)).all()
+    return [(row[0], row[1]) for row in rows]

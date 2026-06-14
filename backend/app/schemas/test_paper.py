@@ -25,8 +25,8 @@ class TestPaperOut(BaseModel):
     title: str
     scheduled_at: datetime | None = None
     duration_seconds: int
-    total_marks: Decimal
-    negative_marking_factor: Decimal
+    total_marks: float
+    negative_marking_factor: float
     shuffle_questions: bool
     shuffle_options: bool
     created_at: datetime
