@@ -37,3 +37,14 @@ htmlcov/
 
 # ── Logs ─────────────────────────────────────────────────────────────────────
 *.log
+
+# ── Playwright ────────────────────────────────────────────────────────────────
+# Generated/scratch output — NOT the specs under tests/playwright/.
+# MCP browser snapshots (page-*.yml) + console dumps:
+.playwright-mcp/
+# per-run artifacts (traces, screenshots on failure):
+test-results/
+# HTML reporter output:
+playwright-report/
+blob-report/
+playwright/.cache/
