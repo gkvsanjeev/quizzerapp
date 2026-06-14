@@ -211,9 +211,13 @@ Security notes:
 
 ### Question Bank API (Days 11–12)
 
-- [ ] **T022** 🔴 Contract tests for question routes
+- [x] **T022** 🔴 Contract tests for question routes
   - Path: `backend/tests/contract/test_question_api.py`
-  - Tests: GET /api/questions (filters), POST /api/questions, PUT /api/questions/{id}, DELETE /api/questions/{id}
+  - Tests: GET /api/questions (paginated + subject/difficulty filters), POST /api/questions
+    (201 teacher, 403 student, 401 anon, 422 missing text / wrong option count, OptionOut
+    omits is_correct), PUT /api/questions/{id} (200, 403, 404), DELETE /api/questions/{id}
+    (204, 403, 404)
+  - RED confirmed: 14 fail (routes 404), 2 pass (the nonexistent→404 cases). Green after T023.
 
 - [ ] **T023** 🔴 Question CRUD API routes
   - Path: `backend/app/api/routes/questions.py`
@@ -490,15 +494,15 @@ Security notes:
 | Phase 0: Scaffold | 5 | 5 ✅ | 0 |
 | Phase 1: Auth + DB | 10 | 10 ✅ | 0 |
 | Phase 1b: Password Reset | 4 | 4 ✅ | 0 |
-| Phase 2: Exam Mgmt | 14 | 6 | 8 |
+| Phase 2: Exam Mgmt | 14 | 7 | 7 |
 | Phase 3: Exam Taking | 11 | 0 | 11 |
 | Phase 4: Analysis | 13 | 0 | 13 |
 | Phase 5: RAG/AI | 7 | 0 | 7 |
 | Phase 6: Polish | 7 | 0 | 7 |
 | **Total** | **71** | **25** | **46** |
 
-**Current**: 25/71 tasks complete (35%)  
-**Next task**: T022 — Contract tests for question routes
+**Current**: 26/71 tasks complete (37%)  
+**Next task**: T023 — Question CRUD API routes (makes T022 tests green)
 
 ---
 
