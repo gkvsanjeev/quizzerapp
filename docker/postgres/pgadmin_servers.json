@@ -1,0 +1,15 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "QuizzerApp (dev)",
+      "Group": "Docker",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "quizzerapp",
+      "Username": "quizzer",
+      "Password": "quizzer_dev_pass",
+      "SSLMode": "prefer",
+      "SavePassword": true
+    }
+  }
+}
