@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "tasks:next": "node -e \"const fs=require('fs');const lines=fs.readFileSync('docs/specifications/tasks.md','utf8').split('\\n');const next=lines.find(l=>l.match(/^- \\[ \\]/));console.log(next||'All tasks complete!')\"",
+    "tasks:status": "node -e \"const fs=require('fs');const t=fs.readFileSync('docs/specifications/tasks.md','utf8');const done=(t.match(/\\[x\\]/g)||[]).length;const todo=(t.match(/\\[ \\]/g)||[]).length;console.log(`Progress: ${done}/${done+todo} tasks (${Math.round(done/(done+todo)*100)}%)`)\"",
+    "tasks:done": "node -e \"const fs=require('fs');const t=fs.readFileSync('docs/specifications/tasks.md','utf8');const lines=t.split('\\n').filter(l=>l.match(/^- \\[x\\]/));lines.forEach(l=>console.log(l))\"",
+    "test:e2e": "playwright test",
+    "test:e2e:debug": "playwright test --headed --debug"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
