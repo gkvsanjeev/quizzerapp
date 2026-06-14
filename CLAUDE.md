@@ -237,22 +237,24 @@ Example: `/rename QuizzerApp Phase 2 — Exam Domain Schemas (T016)`
 
 ### Per-Task Git Workflow
 
-Every task is done on its own branch and pushed when complete. Steps:
+All task work happens directly on the `staging` branch — do NOT create a new branch per
+task. Each task gets its own dedicated commit, pushed to `staging`. Steps:
 
 ```
-1. Branch:  git checkout -b feature/<TaskID>-<slug>     (e.g. feature/T016-exam-schemas)
-            Branch naming follows docs/guides/contributing.md → Git Conventions.
+1. Ensure on staging:  git checkout staging   (work is never done on main)
 2. Implement + test (see Per-Task Testing below).
-3. Commit:  git add -A && git commit per the type(scope) format in contributing.md
-            (e.g. feat(T016): add Pydantic schemas for exam domain).
-            End the commit message with the Co-Authored-By trailer.
-4. Push:    git push -u origin feature/<TaskID>-<slug>
-5. Report the branch name + pushed commit SHA to the user.
+3. Commit (one commit per task): git add <task files> && git commit per the
+   type(scope) format in contributing.md (e.g. feat(T016): add exam schemas).
+   End the commit message with the Co-Authored-By trailer.
+4. Push:   git push origin staging
+5. Report the pushed commit SHA to the user.
 ```
 
 Notes:
-- One branch + one commit per task; branch off `main` unless the task depends on an
-  unmerged prior task's branch.
+- One commit per task, all on `staging`. Keep each commit scoped to a single task's files
+  (don't bundle unrelated changes).
+- `main` stays the sole deployable branch; promote `staging` → `main` via PR only when a
+  set of work is ready to ship — never commit task work directly to `main`.
 - Confirm a remote named `origin` exists before pushing; if none, tell the user instead
   of failing silently.
 
@@ -273,13 +275,14 @@ Pick the verification that matches the task's surface — do not skip:
 ### Branch & Deploy Strategy
 
 ```
-main      → the ONLY deployable branch (Vercel production). Protected: merge via PR only.
-staging   → long-lived local-integration branch. Feature branches merge here first for
-            local end-to-end testing. NEVER auto-deployed (disabled in vercel.json →
-            git.deploymentEnabled.staging = false).
-feature/* → per-task branches (see Per-Task Git Workflow). PR into staging for testing,
-            then staging → main once validated.
+main     → the ONLY deployable branch (Vercel production). Protected: merge via PR only.
+staging  → the working branch. ALL task commits land here (one commit per task, see
+           Per-Task Git Workflow). Used for local end-to-end testing. NEVER auto-deployed
+           (disabled in vercel.json → git.deploymentEnabled.staging = false).
 ```
+
+Promotion flow: commit tasks to `staging` → test locally → open a PR `staging → main`
+when a batch of work is ready to ship. No per-task feature branches.
 
 - `vercel.json` disables Vercel deployment for `staging`. Vercel treats `main` as the
   production branch by default. To block preview deployments on `feature/*` branches too,
