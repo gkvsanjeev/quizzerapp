@@ -114,6 +114,61 @@
   - Path: `docker-compose.yaml`
   - Services: PostgreSQL 16 + pgAdmin 4
 
+### Password Reset — Forgot Password Flow (added 2026-06-14)
+
+> Auth-domain follow-up to T007–T013. Numbered after the original 67-task roadmap
+> (T068+) to avoid renumbering, but belongs to Phase 1 and can be executed now since
+> the auth foundation is complete. Same TDD cycle: schema → contract test → route → UI.
+
+**Plan / design**
+
+```
+Goal: a user who forgot their password can request a reset link by email and set a
+      new password, without an authenticated session.
+
+Flow:
+  1. User clicks "Forgot password?" on /login → /forgot-password page.
+  2. Submits email → POST /api/auth/forgot-password.
+       - Always returns 202 (never reveal whether the email exists → no user enumeration).
+       - If the email maps to an active user: generate a single-use reset token, store
+         only its SHA-256 hash + 30-min expiry in a new password_reset_tokens table, and
+         email a link: {FRONTEND_URL}/reset-password?token=<raw>.
+  3. User opens link → /reset-password page (token read from query string).
+  4. Submits new password (+ confirm) → POST /api/auth/reset-password { token, new_password }.
+       - Validate token (exists, unexpired, unused) → 400 on failure.
+       - Update users.hashed_password (bcrypt), mark token used, and revoke all of the
+         user's active refresh tokens (force re-login everywhere).
+       - 200 → frontend redirects to /login with a success toast.
+
+Security notes:
+  - Reuse the existing hash-the-token pattern from RefreshToken (store hash, send raw).
+  - Reset token: secrets.token_urlsafe(48), 30-minute expiry, single use.
+  - Email delivery via the Gmail MCP server (per CLAUDE.md MCP table); abstract behind a
+    notification helper so it can be swapped for SMTP/SES later.
+  - Rate-limit forgot-password later (out of scope here; note for Phase 6 polish).
+```
+
+- [ ] **T068** 🔴 Password-reset DB + schemas + service
+  - DB: add `password_reset_tokens` table (`id, user_id FK, token_hash, expires_at, used_at, created_at`) in `docs/specifications/database-design.md`; Alembic migration under `backend/app/db/migrations/versions/`
+  - Model: `backend/app/models/user.py` → `PasswordResetToken`
+  - Schemas: `backend/app/schemas/auth.py` → `ForgotPasswordIn { email }`, `ResetPasswordIn { token, new_password }`
+  - Service: `backend/app/services/auth_service.py` → `create_password_reset(db, email)`, `reset_password(db, token, new_password)` (reuses hash-token + refresh-token revocation patterns)
+
+- [ ] **T069** 🔴 Contract tests for password-reset routes (RED)
+  - Path: `backend/tests/contract/test_password_reset_api.py`
+  - Tests: forgot-password returns 202 for known + unknown email (no enumeration); reset with valid token → 200 + new password logs in; expired/invalid/used token → 400; short new password → 422
+  - Run FIRST, confirm they fail (routes not implemented)
+
+- [ ] **T070** 🔴 Password-reset API routes + email delivery (GREEN)
+  - Path: `backend/app/api/routes/auth.py` (extend)
+  - Routes: `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`
+  - Email the reset link via Gmail MCP behind a small notification helper; make tests pass
+
+- [ ] **T071** 🔴 Frontend forgot/reset password pages
+  - Paths: `frontend/src/pages/auth/ForgotPassword.tsx`, `frontend/src/pages/auth/ResetPassword.tsx`
+  - Add "Forgot password?" link on `Login.tsx`; react-hook-form + Zod; calls `authApi.forgotPassword()` / `.resetPassword()`
+  - Verify with the Playwright MCP server; persist `tests/playwright/password-reset.spec.ts`
+
 ---
 
 ## 🔄 PHASE 2: Exam Management API + UI (In Progress)
@@ -434,15 +489,16 @@
 |---|---|---|---|
 | Phase 0: Scaffold | 5 | 5 ✅ | 0 |
 | Phase 1: Auth + DB | 10 | 10 ✅ | 0 |
+| Phase 1b: Password Reset | 4 | 0 | 4 |
 | Phase 2: Exam Mgmt | 14 | 5 | 9 |
 | Phase 3: Exam Taking | 11 | 0 | 11 |
 | Phase 4: Analysis | 13 | 0 | 13 |
 | Phase 5: RAG/AI | 7 | 0 | 7 |
 | Phase 6: Polish | 7 | 0 | 7 |
-| **Total** | **67** | **20** | **47** |
+| **Total** | **71** | **20** | **51** |
 
-**Current**: 20/67 tasks complete (30%)  
-**Next task**: T021 — Subject and Topic API routes
+**Current**: 20/71 tasks complete (28%)  
+**Next task**: T021 — Subject and Topic API routes (password-reset T068–T071 can be picked up anytime)
 
 ---
 
