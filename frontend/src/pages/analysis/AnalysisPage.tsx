@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 
 import { TeacherPageShell } from '@/components/teacher/TeacherPageShell'
 import { OverviewSection } from '@/components/analysis/OverviewSection'
+import { PerformanceSection } from '@/components/analysis/PerformanceSection'
 import { ComingSoonPlaceholder } from '@/components/analysis/ComingSoonPlaceholder'
 import { useOverview } from '@/hooks/useAnalysis'
 
@@ -136,7 +137,7 @@ export default function AnalysisPage() {
 
         {/* Placeholder panels — T047–T053 */}
         <TabsContent value="performance" className="mt-4">
-          <ComingSoonPlaceholder title="Performance" />
+          <PerformanceSection attemptId={attemptId} />
         </TabsContent>
 
         <TabsContent value="time" className="mt-4">

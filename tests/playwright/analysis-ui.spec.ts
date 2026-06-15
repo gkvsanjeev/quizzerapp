@@ -116,8 +116,12 @@ test.describe.serial('Analysis dashboard', () => {
     await expect(overview.getByRole('img', { name: /score gauge/i })).toBeVisible()
   })
 
-  test('placeholder tabs are reachable', async () => {
+  test('T047 — Performance tab shows bar chart + table', async () => {
     await page.getByRole('tab', { name: 'Performance' }).click()
-    await expect(page.getByText(/coming soon/i)).toBeVisible()
+    // Bar chart should be visible
+    await expect(page.locator('.recharts-responsive-container')).toBeVisible()
+    // Summary table should show subject data (use columnheader role for specificity)
+    await expect(page.getByRole('columnheader', { name: 'Subject' })).toBeVisible()
+    await expect(page.getByRole('columnheader', { name: 'Your Score' })).toBeVisible()
   })
 })
