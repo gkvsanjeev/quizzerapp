@@ -86,6 +86,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {user?.role === 'student' && (
         <div className="mt-8">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">My exams</h2>
           <Link to="/attempts" className="group block max-w-sm">
@@ -108,6 +109,7 @@ export default function Dashboard() {
             </Card>
           </Link>
         </div>
+        )}
 
         {(user?.role === 'teacher' || user?.role === 'admin') && (
           <div className="mt-8">

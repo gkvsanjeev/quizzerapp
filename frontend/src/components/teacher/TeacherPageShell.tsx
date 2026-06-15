@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { BookOpen, ClipboardList, FileText, GraduationCap, LayoutDashboard, LogOut } from 'lucide-react'
+import { BookOpen, FileText, GraduationCap, LayoutDashboard, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { authApi } from '@/services/auth'
@@ -21,7 +21,6 @@ const NAV: NavItem[] = [
   { to: '/teacher/exams', label: 'Exams', icon: GraduationCap, roles: ['teacher', 'admin'] },
   { to: '/teacher/questions', label: 'Question Bank', icon: BookOpen, roles: ['teacher', 'admin'] },
   { to: '/teacher/test-papers', label: 'Test Papers', icon: FileText, roles: ['teacher', 'admin'] },
-  { to: '/attempts', label: 'My Attempts', icon: ClipboardList },
 ]
 
 interface TeacherPageShellProps {
