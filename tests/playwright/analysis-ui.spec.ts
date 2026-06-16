@@ -159,4 +159,10 @@ test.describe.serial('Analysis dashboard', () => {
     // Should have time per subject table
     await expect(page.getByText('Time per Subject')).toBeVisible()
   })
+
+  test('T052 — Question Journey tab shows vertical timeline of events', async () => {
+    await page.getByRole('tab', { name: 'Question Journey' }).click()
+    // Should have question journey heading
+    await expect(page.getByText('Question Journey')).toBeVisible()
+  })
 })

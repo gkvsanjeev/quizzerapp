@@ -8,6 +8,7 @@ import { TimeSection } from '@/components/analysis/TimeSection'
 import { AttemptsSection } from '@/components/analysis/AttemptsSection'
 import { DifficultySection } from '@/components/analysis/DifficultySection'
 import { SubjectMovementSection } from '@/components/analysis/SubjectMovementSection'
+import { QuestionJourneySection } from '@/components/analysis/QuestionJourneySection'
 import { ComingSoonPlaceholder } from '@/components/analysis/ComingSoonPlaceholder'
 import { useOverview } from '@/hooks/useAnalysis'
 
@@ -161,7 +162,7 @@ export default function AnalysisPage() {
         </TabsContent>
 
         <TabsContent value="question-journey" className="mt-4">
-          <ComingSoonPlaceholder title="Question Journey" />
+          <QuestionJourneySection attemptId={attemptId} />
         </TabsContent>
 
         <TabsContent value="questions" className="mt-4">
