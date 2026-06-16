@@ -359,7 +359,7 @@ Security notes:
 
 ---
 
-## 🟡 PHASE 4: Analysis (Weeks 5–6)
+## ✅ PHASE 4: Analysis (Weeks 5–6)
 
 ### Analysis API (Days 26–28)
 
@@ -388,12 +388,12 @@ Security notes:
 
 ### Analysis Frontend — Layout + Overview (Day 29)
 
-- [ ] **T045** 🟡 Analysis page layout + navigation
+- [x] **T045** 🟡 Analysis page layout + navigation
   - Path: `frontend/src/pages/analysis/AnalysisPage.tsx`
   - Tabbed navigation: Overview | Performance | Time | Attempts | Difficulty | Subject Movement | Question Journey | Questions
   - Each tab lazy-loads its section component
 
-- [ ] **T046** 🟡 Overview section
+- [x] **T046** 🟡 Overview section
   - Path: `frontend/src/components/analysis/OverviewSection.tsx`
   - KPI cards: Score, Max Score, Percentage, Rank, Percentile, Accuracy, Time Taken
   - Radial gauge chart (RadialBarChart from Recharts) for score percentage
@@ -401,38 +401,38 @@ Security notes:
 
 ### Analysis Frontend — Charts (Days 30–33)
 
-- [ ] **T047** 🟡 Performance section (subject breakdown)
+- [x] **T047** 🟡 Performance section (subject breakdown)
   - Path: `frontend/src/components/analysis/PerformanceSection.tsx`
   - Grouped BarChart: X-axis = subjects, 3 bars each (your score, topper score, average)
   - Summary table below chart
 
-- [ ] **T048** 🟡 Time analysis section
+- [x] **T048** 🟡 Time analysis section
   - Path: `frontend/src/components/analysis/TimeSection.tsx`
   - Histogram (BarChart): time buckets 0–30s, 30–60s, 1–2m, 2–5m, 5m+
   - PieChart: time per subject
   - Stats: total time, avg per question, time per difficulty level
 
-- [ ] **T049** 🟡 Attempts analysis section
+- [x] **T049** 🟡 Attempts analysis section
   - Path: `frontend/src/components/analysis/AttemptsSection.tsx`
   - PieChart: correct | incorrect | skipped | unattempted | marked for review
   - Waterfall BarChart: gross_score → -negative_marks → net_score
 
-- [ ] **T050** 🟡 Difficulty breakdown section
+- [x] **T050** 🟡 Difficulty breakdown section
   - Path: `frontend/src/components/analysis/DifficultySection.tsx`
   - Stacked BarChart: easy/medium/hard, each bar stacked: correct (green), incorrect (red), unattempted (grey)
   - Accuracy % label per difficulty level
 
-- [ ] **T051** 🟡 Subject movement section
+- [x] **T051** 🟡 Subject movement section
   - Path: `frontend/src/components/analysis/SubjectMovementSection.tsx`
   - Custom CSS horizontal timeline showing subject transitions over exam duration
   - Each segment: subject name + color-coded, duration label
 
-- [ ] **T052** 🟡 Question journey section
+- [x] **T052** 🟡 Question journey section
   - Path: `frontend/src/components/analysis/QuestionJourneySection.tsx`
   - Vertical timeline: visited → answered → marked_for_review → revisited → answer_changed events
   - Each event shown with timestamp (elapsed time from exam start)
 
-- [ ] **T053** 🟡 Question-by-question table
+- [x] **T053** 🟡 Question-by-question table
   - Path: `frontend/src/components/analysis/QuestionsTableSection.tsx`
   - Filterable table: Q#, Subject, Topic, Difficulty, Your Answer, Correct Answer, Result (✅/❌/—), Time
   - Row click → opens question detail modal with full text + explanation
@@ -533,7 +533,7 @@ Security notes:
 | **Total** | **71** | **25** | **46** |
 
 **Current**: 48/71 tasks complete (68%) — Phase 4 analysis API complete  
-**Next task**: T045 — Analysis page layout + navigation (Phase 4 frontend; T045–T053 Recharts UI)
+**Next task**: T054 — Document upload API (RAG)
 
 ---
 

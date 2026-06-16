@@ -10,6 +10,7 @@ import QuestionBankPage from '@/pages/teacher/QuestionBankPage'
 import TestPaperPage from '@/pages/teacher/TestPaperPage'
 import ExamPage from '@/pages/exam/ExamPage'
 import AttemptsPage from '@/pages/student/AttemptsPage'
+import AnalysisPage from '@/pages/analysis/AnalysisPage'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { useAuthStore } from '@/store/authStore'
@@ -76,6 +77,14 @@ export default function App() {
               element={
                 <PrivateRoute>
                   <ExamPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/analysis/:attemptId"
+              element={
+                <PrivateRoute>
+                  <AnalysisPage />
                 </PrivateRoute>
               }
             />
