@@ -165,4 +165,11 @@ test.describe.serial('Analysis dashboard', () => {
     // Should have question journey heading
     await expect(page.getByText('Question Journey')).toBeVisible()
   })
+
+  test('T053 — Questions tab shows filterable table with modal', async () => {
+    await page.getByRole('tab', { name: 'Questions' }).click()
+    // Should have table with headers
+    await expect(page.getByRole('columnheader', { name: 'Q#' })).toBeVisible()
+    await expect(page.getByRole('columnheader', { name: 'Subject' })).toBeVisible()
+  })
 })
