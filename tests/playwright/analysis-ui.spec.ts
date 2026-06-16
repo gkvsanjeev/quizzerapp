@@ -151,4 +151,12 @@ test.describe.serial('Analysis dashboard', () => {
     // Should have accuracy summary
     await expect(page.getByText('Accuracy by Difficulty')).toBeVisible()
   })
+
+  test('T051 — Subject Movement tab shows timeline + time table', async () => {
+    await page.getByRole('tab', { name: 'Subject Movement' }).click()
+    // Should have timeline
+    await expect(page.getByText('Subject Timeline')).toBeVisible()
+    // Should have time per subject table
+    await expect(page.getByText('Time per Subject')).toBeVisible()
+  })
 })
