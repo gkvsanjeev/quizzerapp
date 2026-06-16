@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { TeacherPageShell } from '@/components/teacher/TeacherPageShell'
 import { OverviewSection } from '@/components/analysis/OverviewSection'
 import { PerformanceSection } from '@/components/analysis/PerformanceSection'
+import { TimeSection } from '@/components/analysis/TimeSection'
 import { ComingSoonPlaceholder } from '@/components/analysis/ComingSoonPlaceholder'
 import { useOverview } from '@/hooks/useAnalysis'
 
@@ -141,7 +142,7 @@ export default function AnalysisPage() {
         </TabsContent>
 
         <TabsContent value="time" className="mt-4">
-          <ComingSoonPlaceholder title="Time Analysis" />
+          <TimeSection attemptId={attemptId} />
         </TabsContent>
 
         <TabsContent value="attempts" className="mt-4">

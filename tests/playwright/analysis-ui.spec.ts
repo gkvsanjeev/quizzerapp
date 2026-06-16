@@ -124,4 +124,13 @@ test.describe.serial('Analysis dashboard', () => {
     await expect(page.getByRole('columnheader', { name: 'Subject' })).toBeVisible()
     await expect(page.getByRole('columnheader', { name: 'Your Score' })).toBeVisible()
   })
+
+  test('T048 — Time tab shows histogram + pie chart + stats', async () => {
+    await page.getByRole('tab', { name: 'Time' }).click()
+    // Stats should be visible
+    await expect(page.getByText('Total Time')).toBeVisible()
+    await expect(page.getByText('Avg per Question')).toBeVisible()
+    // Two charts visible (histogram + pie)
+    await expect(page.locator('.recharts-responsive-container')).toHaveCount(2)
+  })
 })
