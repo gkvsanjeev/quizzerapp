@@ -443,39 +443,39 @@ Security notes:
 
 ### RAG API (Days 34–37)
 
-- [ ] **T054** 🟢 Pydantic v2 schemas for RAG domain
+- [x] **T054** 🟢 Pydantic v2 schemas for RAG domain
   - Path: `backend/app/schemas/rag.py`
   - Schemas: `DocumentOut`, `GenerateQuestionsIn`, `GeneratedQuestion`, `SaveQuestionsIn`, `SaveQuestionsOut`, `SearchResult`
 
-- [ ] **T055** 🟢 Contract tests for RAG routes
+- [x] **T055** 🟢 Contract tests for RAG routes
   - Path: `backend/tests/contract/test_rag_api.py`
   - Tests: POST /upload (202), GET /documents, GET /documents/{id}, POST /generate-questions, POST /questions/save, GET /search
 
-- [ ] **T056** 🟢 Document upload API + Vercel Blob storage
+- [x] **T056** 🟢 Document upload API + Vercel Blob storage
   - Path: `backend/app/api/routes/rag.py`
   - POST /api/rag/upload: validates file type + size (≤50MB), saves to Vercel Blob, creates document record, enqueues background task
   - Returns 202 { document_id, status: "pending" }
 
-- [ ] **T057** 🟢 RAG processing service
+- [x] **T057** 🟢 RAG processing service
   - Path: `backend/app/services/rag_service.py`
   - `process_document(document_id)`: extract (pdfplumber → pytesseract fallback) → chunk (LangChain RecursiveCharacterTextSplitter, 500/50) → embed (OpenAI text-embedding-3-small, batch 100) → store pgvector → update status = "ready"
   - Background task via FastAPI `BackgroundTasks`
 
-- [ ] **T058** 🟢 Question generation API
+- [x] **T058** 🟢 Question generation API
   - Route: POST /api/rag/generate-questions
   - Embed query from subject/topic params → pgvector cosine search (top_k=15 chunks)
-  - Call Claude claude-sonnet-4-6 (or GPT-4o) with structured prompt → Pydantic-validated `GeneratedQuestion` list
+  - Call GPT-4o with structured prompt → Pydantic-validated `GeneratedQuestion` list
   - Returns questions WITHOUT saving (for teacher review)
   - Route: POST /api/rag/questions/save → bulk insert to questions + options tables
 
 ### RAG Frontend UI (Days 38–40)
 
-- [ ] **T059** 🟢 Document upload and status page (teacher)
+- [x] **T059** 🟢 Document upload and status page (teacher)
   - Path: `frontend/src/pages/teacher/RAGPage.tsx`
   - File picker (PDF/image, max 50MB), upload button
   - Document list with status badges (pending/processing/ready/failed), polling every 3s
 
-- [ ] **T060** 🟢 Question generation form + review UI (teacher)
+- [x] **T060** 🟢 Question generation form + review UI (teacher)
   - Path: `frontend/src/components/rag/GenerateQuestionsPanel.tsx`
   - Form: select document, subject, topic, difficulty, count (1–20)
   - Results panel: generated questions with correct answer highlighted (green)
@@ -527,13 +527,13 @@ Security notes:
 | Phase 1b: Password Reset | 4 | 4 ✅ | 0 |
 | Phase 2: Exam Mgmt | 14 | 14 ✅ | 0 |
 | Phase 3: Exam Taking | 11 | 11 ✅ | 0 |
-| Phase 4: Analysis | 13 | 4 | 9 |
-| Phase 5: RAG/AI | 7 | 0 | 7 |
+| Phase 4: Analysis | 13 | 13 | 0 |
+| Phase 5: RAG/AI | 7 | 7 | 0 |
 | Phase 6: Polish | 7 | 0 | 7 |
-| **Total** | **71** | **25** | **46** |
+| **Total** | **71** | **55** | **16** |
 
-**Current**: 48/71 tasks complete (68%) — Phase 4 analysis API complete  
-**Next task**: T054 — Document upload API (RAG)
+**Current**: 55/71 tasks complete (77%) — Phase 5 RAG/AI complete  
+**Next task**: T061 — Leaderboard computation on submit
 
 ---
 

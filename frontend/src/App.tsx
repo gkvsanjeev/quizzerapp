@@ -8,6 +8,7 @@ import Dashboard from '@/pages/dashboard/Dashboard'
 import ExamsPage from '@/pages/teacher/ExamsPage'
 import QuestionBankPage from '@/pages/teacher/QuestionBankPage'
 import TestPaperPage from '@/pages/teacher/TestPaperPage'
+import RAGPage from '@/pages/teacher/RAGPage'
 import ExamPage from '@/pages/exam/ExamPage'
 import AttemptsPage from '@/pages/student/AttemptsPage'
 import AnalysisPage from '@/pages/analysis/AnalysisPage'
@@ -61,6 +62,14 @@ export default function App() {
               element={
                 <PrivateRoute>
                   <TestPaperPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/teacher/rag"
+              element={
+                <PrivateRoute>
+                  <RAGPage />
                 </PrivateRoute>
               }
             />

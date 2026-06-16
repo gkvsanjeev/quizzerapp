@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { BookOpen, FileText, GraduationCap } from 'lucide-react'
+import { BookOpen, Brain, FileText, GraduationCap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { authApi } from '@/services/auth'
@@ -24,6 +24,12 @@ const TEACHER_LINKS = [
     label: 'Test Papers',
     description: 'Assemble timed mock tests',
     icon: FileText,
+  },
+  {
+    to: '/teacher/rag',
+    label: 'AI Questions',
+    description: 'Generate questions from documents using AI',
+    icon: Brain,
   },
 ]
 
