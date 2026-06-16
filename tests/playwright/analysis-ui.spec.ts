@@ -133,4 +133,14 @@ test.describe.serial('Analysis dashboard', () => {
     // Two charts visible (histogram + pie)
     await expect(page.locator('.recharts-responsive-container')).toHaveCount(2)
   })
+
+  test('T049 — Attempts tab shows pie chart + waterfall chart', async () => {
+    await page.getByRole('tab', { name: 'Attempts' }).click()
+    // Should have pie chart for question status
+    await expect(page.getByText('Question Status')).toBeVisible()
+    // Should have waterfall chart for score breakdown
+    await expect(page.getByText('Score Breakdown')).toBeVisible()
+    // Two charts visible
+    await expect(page.locator('.recharts-responsive-container')).toHaveCount(2)
+  })
 })

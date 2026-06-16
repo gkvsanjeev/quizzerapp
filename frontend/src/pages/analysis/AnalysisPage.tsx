@@ -5,6 +5,7 @@ import { TeacherPageShell } from '@/components/teacher/TeacherPageShell'
 import { OverviewSection } from '@/components/analysis/OverviewSection'
 import { PerformanceSection } from '@/components/analysis/PerformanceSection'
 import { TimeSection } from '@/components/analysis/TimeSection'
+import { AttemptsSection } from '@/components/analysis/AttemptsSection'
 import { ComingSoonPlaceholder } from '@/components/analysis/ComingSoonPlaceholder'
 import { useOverview } from '@/hooks/useAnalysis'
 
@@ -146,7 +147,7 @@ export default function AnalysisPage() {
         </TabsContent>
 
         <TabsContent value="attempts" className="mt-4">
-          <ComingSoonPlaceholder title="Attempts Breakdown" />
+          <AttemptsSection attemptId={attemptId} />
         </TabsContent>
 
         <TabsContent value="difficulty" className="mt-4">
