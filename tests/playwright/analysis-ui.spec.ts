@@ -143,4 +143,12 @@ test.describe.serial('Analysis dashboard', () => {
     // Two charts visible
     await expect(page.locator('.recharts-responsive-container')).toHaveCount(2)
   })
+
+  test('T050 — Difficulty tab shows stacked bar chart + accuracy summary', async () => {
+    await page.getByRole('tab', { name: 'Difficulty' }).click()
+    // Should have difficulty breakdown chart
+    await expect(page.getByText('Difficulty Breakdown')).toBeVisible()
+    // Should have accuracy summary
+    await expect(page.getByText('Accuracy by Difficulty')).toBeVisible()
+  })
 })

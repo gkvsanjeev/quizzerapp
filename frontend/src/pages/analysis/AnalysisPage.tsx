@@ -6,6 +6,7 @@ import { OverviewSection } from '@/components/analysis/OverviewSection'
 import { PerformanceSection } from '@/components/analysis/PerformanceSection'
 import { TimeSection } from '@/components/analysis/TimeSection'
 import { AttemptsSection } from '@/components/analysis/AttemptsSection'
+import { DifficultySection } from '@/components/analysis/DifficultySection'
 import { ComingSoonPlaceholder } from '@/components/analysis/ComingSoonPlaceholder'
 import { useOverview } from '@/hooks/useAnalysis'
 
@@ -151,7 +152,7 @@ export default function AnalysisPage() {
         </TabsContent>
 
         <TabsContent value="difficulty" className="mt-4">
-          <ComingSoonPlaceholder title="Difficulty Breakdown" />
+          <DifficultySection attemptId={attemptId} />
         </TabsContent>
 
         <TabsContent value="subject-movement" className="mt-4">
